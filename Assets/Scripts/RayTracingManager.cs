@@ -5,12 +5,27 @@ using UnityEngine;
 public class RayTracingManager : MonoBehaviour
 {
     public ComputeShader RayTracingShader;
+    public Texture SkyboxTexture;
 
     private RenderTexture _target;
+    private Camera _camera;
+
+    private void Awake()
+    {
+        _camera = GetComponent<Camera>();
+    }
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
+        SetShaderParameters();
         Render(destination);
+    }
+
+    private void SetShaderParameters()
+    {
+        RayTracingShader.SetTexture(0, "_SkyboxTexture", SkyboxTexture);
+        RayTracingShader.SetMatrix("_CameraToWorld", _camera.cameraToWorldMatrix);
+        RayTracingShader.SetMatrix("_CameraInverseProjection", _camera.projectionMatrix.inverse);
     }
 
     private void Render(RenderTexture destination)

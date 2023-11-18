@@ -5,10 +5,41 @@
 // with cs.SetTexture
 RWTexture2D<float4> Result;
 
+float4x4 _CameraToWorld;
+float4x4 _CameraInverseProjection;
+
+struct Ray
+{
+    float3 origin;
+    float3 dir;
+};
+
+Ray CreateRay(float3 origin, float3 dir)
+{
+    Ray ray;
+    ray.origin = origin;
+    ray.dir = dir;
+    return ray;
+}
+
+Ray CreateCameraRay(float2 uv)
+{
+    float3 origin = mul(_CameraToWorld, float4(0, 0, 0, 1)).xyz;
+    float3 dir = mul(_CameraInverseProjection, float4(uv, 0, 1)).xyz;
+    dir = mul(_CameraToWorld, float4(dir, 0)).xyz;
+    dir = normalize(dir);
+    return CreateRay(origin, dir);
+}
+
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    // TODO: insert actual code here!
+    uint width, height;
+    Result.GetDimensions(width, height);
 
-    Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+    float2 uv = float2((id.xy + float2(0.5, 0.5)) / float2(width, height) * 2 - 1);
+    Ray ray = CreateCameraRay(uv);
+
+    Result[id.xy] = float4(ray.dir * 0.5 + 0.5, 1);
+    //Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
 }
