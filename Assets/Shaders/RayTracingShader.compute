@@ -8,6 +8,11 @@ RWTexture2D<float4> Result;
 float4x4 _CameraToWorld;
 float4x4 _CameraInverseProjection;
 
+Texture2D<float4> _SkyboxTexture;
+SamplerState sampler_SkyboxTexture;
+
+static const float PI = 3.14159265f;
+
 struct Ray
 {
     float3 origin;
@@ -40,6 +45,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float2 uv = float2((id.xy + float2(0.5, 0.5)) / float2(width, height) * 2 - 1);
     Ray ray = CreateCameraRay(uv);
 
-    Result[id.xy] = float4(ray.dir * 0.5 + 0.5, 1);
+    float theta = acos(ray.dir.y) / -PI;
+    float pi = atan2(ray.dir.x, -ray.dir.z) / -PI * 0.5;
+    Result[id.xy] = _SkyboxTexture.SampleLevel(sampler_SkyboxTexture, float2(pi, theta), 0);
+
+    //Result[id.xy] = float4(ray.dir * 0.5 + 0.5, 1);
     //Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
 }
