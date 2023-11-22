@@ -36,6 +36,54 @@ Ray CreateCameraRay(float2 uv)
     return CreateRay(origin, dir);
 }
 
+struct RayHit
+{
+    float3 pos;
+    float dist;
+    float3 normal;
+};
+
+RayHit CreateRayHit()
+{
+    RayHit hit;
+    hit.pos = float3(0, 0, 0);
+    hit.dist = 1.#INF;
+    hit.normal = float3(0, 0, 0);
+    return hit;
+}
+
+void IntersectGroundPlane(Ray ray, inout RayHit hit)
+{
+    float t = -ray.origin.y / ray.dir.y;
+    if (t > 0 && t < hit.dist)
+    {
+        hit.dist = t;
+        hit.pos = ray.origin + t * ray.dir;
+        hit.normal = float3(0, 1, 0);
+    }
+}
+
+RayHit Trace(Ray ray)
+{
+    RayHit hit = CreateRayHit();
+    IntersectGroundPlane(ray, hit);
+    return hit;
+}
+
+float3 Shade(inout Ray ray, RayHit hit)
+{
+    if (hit.dist < 1.#INF)
+	{
+        return hit.normal * 0.5 + 0.5;
+	}
+    else
+    {
+        float theta = acos(ray.dir.y) / -PI;
+        float pi = atan2(ray.dir.x, -ray.dir.z) / -PI * 0.5;
+        return _SkyboxTexture.SampleLevel(sampler_SkyboxTexture, float2(pi, theta), 0).xyz;
+    }
+}
+
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
@@ -45,9 +93,9 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float2 uv = float2((id.xy + float2(0.5, 0.5)) / float2(width, height) * 2 - 1);
     Ray ray = CreateCameraRay(uv);
 
-    float theta = acos(ray.dir.y) / -PI;
-    float pi = atan2(ray.dir.x, -ray.dir.z) / -PI * 0.5;
-    Result[id.xy] = _SkyboxTexture.SampleLevel(sampler_SkyboxTexture, float2(pi, theta), 0);
+    RayHit hit = Trace(ray);
+    float3 result = Shade(ray, hit);
+    Result[id.xy] = float4(result, 1);
 
     //Result[id.xy] = float4(ray.dir * 0.5 + 0.5, 1);
     //Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
