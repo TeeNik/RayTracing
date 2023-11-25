@@ -6,6 +6,7 @@ public class RayTracingManager : MonoBehaviour
 {
     public ComputeShader RayTracingShader;
     public Texture SkyboxTexture;
+    public Light DirectionalLight;
 
     private RenderTexture _target;
     private Camera _camera;
@@ -38,6 +39,10 @@ public class RayTracingManager : MonoBehaviour
         RayTracingShader.SetVector("_PixelOffset", new Vector2(Random.value, Random.value));
         RayTracingShader.SetMatrix("_CameraToWorld", _camera.cameraToWorldMatrix);
         RayTracingShader.SetMatrix("_CameraInverseProjection", _camera.projectionMatrix.inverse);
+
+        Vector3 LightDir = DirectionalLight.transform.forward;
+        RayTracingShader.SetVector("_DirectionalLight", new Vector4(LightDir.x, LightDir.y, LightDir.z, DirectionalLight.intensity));
+
     }
 
     private void Render(RenderTexture destination)
