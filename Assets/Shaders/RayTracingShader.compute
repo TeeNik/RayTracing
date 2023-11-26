@@ -1,6 +1,8 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
+struct Sphere;
+
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
 RWTexture2D<float4> Result;
@@ -13,6 +15,8 @@ SamplerState sampler_SkyboxTexture;
 
 float2 _PixelOffset;
 float4 _DirectionalLight;
+
+StructuredBuffer<Sphere> _Spheres;
 
 static const float PI = 3.14159265f;
 
@@ -46,6 +50,9 @@ struct RayHit
     float3 pos;
     float dist;
     float3 normal;
+
+    float3 albedo;
+    float3 specular;
 };
 
 RayHit CreateRayHit()
@@ -54,8 +61,18 @@ RayHit CreateRayHit()
     hit.pos = float3(0, 0, 0);
     hit.dist = 1.#INF;
     hit.normal = float3(0, 0, 0);
+    hit.albedo = float3(0, 0, 0);
+    hit.specular = float3(0, 0, 0);
     return hit;
 }
+
+struct Sphere
+{
+    float3 pos;
+    float radius;
+    float3 albedo;
+    float3 specular;
+};
 
 void IntersectGroundPlane(Ray ray, inout RayHit hit)
 {
@@ -68,11 +85,11 @@ void IntersectGroundPlane(Ray ray, inout RayHit hit)
     }
 }
 
-void IntersectSphere(Ray ray, inout RayHit hit, float4 sphere)
+void IntersectSphere(Ray ray, inout RayHit hit, Sphere sphere)
 {
-    float3 d = ray.origin - sphere.xyz;
+    float3 d = ray.origin - sphere.pos;
     float p1 = -dot(ray.dir, d);
-    float p2sqr = p1 * p1 - dot(d, d) + sphere.w * sphere.w;
+    float p2sqr = p1 * p1 - dot(d, d) + sphere.radius * sphere.radius;
     if (p2sqr < 0)
     {
         return;
@@ -84,7 +101,9 @@ void IntersectSphere(Ray ray, inout RayHit hit, float4 sphere)
     {
         hit.dist = t;
         hit.pos = ray.origin + t * ray.dir;
-        hit.normal = normalize(hit.pos - sphere.xyz);
+        hit.normal = normalize(hit.pos - sphere.pos);
+        hit.albedo = sphere.albedo;
+        hit.specular = sphere.specular;
     }
 }
 
@@ -93,15 +112,14 @@ RayHit Trace(Ray ray)
     RayHit hit = CreateRayHit();
     IntersectGroundPlane(ray, hit);
 
-    for (int i = -5; i < 5; ++i)
-    {
-	    for (int j = -5; j < 5; ++j)
-	    {
-            IntersectSphere(ray, hit, float4(i * 3, 1, j * 3, 1));
+    uint numSpheres, stride;
+    _Spheres.GetDimensions(numSpheres, stride);
 
-	    }
+    for (int i = 0; i < numSpheres; ++i)
+    {
+        IntersectSphere(ray, hit, _Spheres[i]);
     }
-    //IntersectSphere(ray, hit, float4(0, 1, 0, 1));
+
     return hit;
 }
 
@@ -109,11 +127,9 @@ float3 Shade(inout Ray ray, RayHit hit)
 {
     if (hit.dist < 1.#INF)
 	{
-        float3 specular = float3(0.6, 0.6, 0.6);
-        float3 albedo = float3(0.8, 0.8, 0.8);
         ray.origin = hit.pos + hit.normal * 0.001;
         ray.dir = reflect(ray.dir, hit.normal);
-        ray.energy *= specular;
+        ray.energy *= hit.specular;
 
         bool shadow = false;
         Ray shadowRay = CreateRay(hit.pos + hit.normal * 0.001, -1 * _DirectionalLight.xyz);
@@ -123,7 +139,7 @@ float3 Shade(inout Ray ray, RayHit hit)
             return float3(0, 0, 0);
         }
 
-        return saturate(dot(hit.normal, _DirectionalLight.xyz) * -1) * _DirectionalLight.w * albedo;
+        return saturate(dot(hit.normal, _DirectionalLight.xyz) * -1) * _DirectionalLight.w * hit.albedo;
 	}
     else
     {
