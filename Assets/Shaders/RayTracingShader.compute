@@ -1,7 +1,13 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
-struct Sphere;
+struct Sphere
+{
+    float3 pos;
+    float radius;
+    float3 albedo;
+    float3 specular;
+};
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
@@ -66,14 +72,6 @@ RayHit CreateRayHit()
     return hit;
 }
 
-struct Sphere
-{
-    float3 pos;
-    float radius;
-    float3 albedo;
-    float3 specular;
-};
-
 void IntersectGroundPlane(Ray ray, inout RayHit hit)
 {
     float t = -ray.origin.y / ray.dir.y;
@@ -82,6 +80,8 @@ void IntersectGroundPlane(Ray ray, inout RayHit hit)
         hit.dist = t;
         hit.pos = ray.origin + t * ray.dir;
         hit.normal = float3(0, 1, 0);
+        hit.albedo = float3(0.8, 0.8, 0.8);
+        hit.specular = float3(0.6, 0.6, 0.6);
     }
 }
 
@@ -115,7 +115,7 @@ RayHit Trace(Ray ray)
     uint numSpheres, stride;
     _Spheres.GetDimensions(numSpheres, stride);
 
-    for (int i = 0; i < numSpheres; ++i)
+    for (uint i = 0; i < numSpheres; ++i)
     {
         IntersectSphere(ray, hit, _Spheres[i]);
     }
