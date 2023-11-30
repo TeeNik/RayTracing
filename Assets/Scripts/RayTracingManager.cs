@@ -14,6 +14,7 @@ public class RayTracingManager : MonoBehaviour
     private ComputeBuffer _spheresBuffer;
 
     private RenderTexture _target;
+    private RenderTexture _converged;
     private Camera _camera;
     private int _currentSample = 0;
     private Material _addMaterial;
@@ -131,7 +132,8 @@ public class RayTracingManager : MonoBehaviour
         _addMaterial.SetFloat("_Sample", _currentSample);
         ++_currentSample;
 
-        Graphics.Blit(_target, destination, _addMaterial);
+        Graphics.Blit(_target, _converged, _addMaterial);
+        Graphics.Blit(_converged, destination);
     }
 
     private void InitRenderTexture()
@@ -143,11 +145,22 @@ public class RayTracingManager : MonoBehaviour
                 _target.Release();
             }
 
+            if (_converged != null)
+            {
+                _converged.Release();
+            }
+
             _target = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGBFloat,
                 RenderTextureReadWrite.Linear);
-
             _target.enableRandomWrite = true;
             _target.Create();
+
+            _converged = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGBFloat,
+                RenderTextureReadWrite.Linear);
+            _converged.enableRandomWrite = true;
+            _converged.Create();
+
+            _currentSample = 0;
         }
     }
     
