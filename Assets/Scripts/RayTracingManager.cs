@@ -8,6 +8,8 @@ public class RayTracingManager : MonoBehaviour
     public Texture SkyboxTexture;
     public Light DirectionalLight;
 
+    [Header("Scene SetUp")] 
+    public int SphereSeed = 7658;
     public Vector2 SphereRadius = new Vector2(3.0f, 8.0f);
     public uint SpheresMax = 100;
     public float SpherePlacementRadius = 100.0f;
@@ -41,6 +43,8 @@ public class RayTracingManager : MonoBehaviour
 
     private void SetUpScene()
     {
+        Random.InitState(SphereSeed);
+
         List<Sphere> spheres = new List<Sphere>();
         for (int i = 0; i < SpheresMax; ++i)
         {
