@@ -9,8 +9,6 @@ struct Sphere
     float3 specular;
 };
 
-// Create a RenderTexture with enableRandomWrite flag and set it
-// with cs.SetTexture
 RWTexture2D<float4> Result;
 
 float4x4 _CameraToWorld;
@@ -21,10 +19,39 @@ SamplerState sampler_SkyboxTexture;
 
 float2 _PixelOffset;
 float4 _DirectionalLight;
-
 StructuredBuffer<Sphere> _Spheres;
+float2 _Pixel;
+float _Seed;
 
 static const float PI = 3.14159265f;
+
+float rand()
+{
+    float result = frac(sin(_Seed / 100.0f * dot(_Pixel, float2(12.9898f, 78.233f))) * 43758.5453f);
+    _Seed += 1.0f;
+    return result;
+}
+
+float3x3 GetTangentSpace(float3 normal)
+{
+    float3 helper = float3(1, 0, 0);
+    if (abs(normal.x) > 0.99f)
+    {
+        helper = float3(0, 0, 1);
+    }
+    float3 tangent = normalize(cross(normal, helper));
+    float3 binormal = normalize(cross(normal, tangent));
+    return float3x3(tangent, binormal, normal);
+}
+
+float3 SampleHemisphere(float3 normal)
+{
+    float cosTheta = rand();
+    float sinTheta = sqrt(max(0, 1 - cosTheta * cosTheta));
+    float phi = 2 * PI * rand();
+    float3 tangentSpaceDir = float3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
+    return mul(tangentSpaceDir, GetTangentSpace(normal));
+}
 
 struct Ray
 {
@@ -80,13 +107,14 @@ void IntersectGroundPlane(Ray ray, inout RayHit hit)
         hit.dist = t;
         hit.pos = ray.origin + t * ray.dir;
         hit.normal = float3(0, 1, 0);
-        hit.albedo = float3(0.8, 0.8, 0.8);
-        hit.specular = float3(0.6, 0.6, 0.6);
+        hit.albedo = 0.5f;
+        hit.specular = 0.03f;
     }
 }
 
-void IntersectSphere(Ray ray, inout RayHit hit, Sphere sphere)
+void IntersectSphere(Ray ray, inout RayHit hit, uint sphereIndex)
 {
+    Sphere sphere = _Spheres[sphereIndex];
     float3 d = ray.origin - sphere.pos;
     float p1 = -dot(ray.dir, d);
     float p2sqr = p1 * p1 - dot(d, d) + sphere.radius * sphere.radius;
@@ -117,16 +145,30 @@ RayHit Trace(Ray ray)
 
     for (uint i = 0; i < numSpheres; ++i)
     {
-        IntersectSphere(ray, hit, _Spheres[i]);
+        IntersectSphere(ray, hit, i);
     }
 
     return hit;
+}
+
+float sdot(float3 x, float3 y, float f = 1.0f)
+{
+    return saturate(dot(x, y) * f);
 }
 
 float3 Shade(inout Ray ray, RayHit hit)
 {
     if (hit.dist < 1.#INF)
 	{
+        ray.origin = hit.pos + hit.normal * 0.001;
+        float3 reflected = reflect(ray.dir, hit.normal);
+        ray.dir = SampleHemisphere(hit.normal);
+        float3 diffuse = 2 * min(1 - hit.specular, hit.albedo);
+        float alpha = 15;
+        float3 specular = hit.specular * (alpha + 2) * pow(sdot(ray.dir, reflected), alpha);
+        ray.energy *= (diffuse + specular) * sdot(hit.normal, ray.dir);
+        return 0.0f;
+
         ray.origin = hit.pos + hit.normal * 0.001;
         ray.dir = reflect(ray.dir, hit.normal);
         ray.energy *= hit.specular;
@@ -138,7 +180,7 @@ float3 Shade(inout Ray ray, RayHit hit)
 		{
             return float3(0, 0, 0);
         }
-
+        
         return saturate(dot(hit.normal, _DirectionalLight.xyz) * -1) * _DirectionalLight.w * hit.albedo;
 	}
     else
@@ -153,6 +195,8 @@ float3 Shade(inout Ray ray, RayHit hit)
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
+    _Pixel = id.xy;
+
     uint width, height;
     Result.GetDimensions(width, height);
 

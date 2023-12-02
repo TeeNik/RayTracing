@@ -109,6 +109,7 @@ public class RayTracingManager : MonoBehaviour
 
     private void SetShaderParameters()
     {
+        RayTracingShader.SetFloat("_Seed", Random.value);
         RayTracingShader.SetBuffer(0, "_Spheres", _spheresBuffer);
         RayTracingShader.SetTexture(0, "_SkyboxTexture", SkyboxTexture);
         RayTracingShader.SetVector("_PixelOffset", new Vector2(Random.value, Random.value));
