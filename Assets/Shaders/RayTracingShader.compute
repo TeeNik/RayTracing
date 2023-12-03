@@ -44,9 +44,14 @@ float3x3 GetTangentSpace(float3 normal)
     return float3x3(tangent, binormal, normal);
 }
 
-float3 SampleHemisphere(float3 normal)
+float3 SampleHemisphere(float3 normal, float alpha)
 {
-    float cosTheta = rand();
+    // Sample the hemisphere, where the alpha determines the kind of the sampling
+	// Uniform: 1.0f
+	// Cosine:  0.5f
+	// Phong:   1.0f / (alpha + 1.0f)
+
+    float cosTheta = pow(rand(), 1 / (alpha + 1));
     float sinTheta = sqrt(max(0, 1 - cosTheta * cosTheta));
     float phi = 2 * PI * rand();
     float3 tangentSpaceDir = float3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
@@ -175,14 +180,18 @@ float3 Shade(inout Ray ray, RayHit hit)
         float roulette = rand();
         if (roulette < specChance)
         {
+            //specular reflection
+            float alpha = 250;
             ray.origin = hit.pos + hit.normal * 0.001;
-            ray.dir = reflect(ray.dir, hit.normal);
-            ray.energy *= (1 / specChance) * hit.specular * sdot(hit.normal, ray.dir);
+            ray.dir = SampleHemisphere(reflect(ray.dir, hit.normal), alpha);
+            float f = (alpha + 2) / (alpha + 1);
+            ray.energy *= (1 / specChance) * hit.specular * sdot(hit.normal, ray.dir, f);
         }
         else if (roulette < specChance + diffChance)
         {
+            //diffuse reflection
             ray.origin = hit.pos + hit.normal * 0.001;
-            ray.dir = SampleHemisphere(hit.normal);
+            ray.dir = SampleHemisphere(hit.normal, 1.0f);
             ray.energy *= (1 / diffChance) * 2 * hit.albedo * sdot(hit.normal, ray.dir);
         }
         else
