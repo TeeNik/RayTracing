@@ -156,32 +156,40 @@ float sdot(float3 x, float3 y, float f = 1.0f)
     return saturate(dot(x, y) * f);
 }
 
+float energy(float3 color)
+{
+    return dot(color, 1.0f / 3.0f);
+}
+
 float3 Shade(inout Ray ray, RayHit hit)
 {
     if (hit.dist < 1.#INF)
 	{
-        ray.origin = hit.pos + hit.normal * 0.001;
-        float3 reflected = reflect(ray.dir, hit.normal);
-        ray.dir = SampleHemisphere(hit.normal);
-        float3 diffuse = 2 * min(1 - hit.specular, hit.albedo);
-        float alpha = 15;
-        float3 specular = hit.specular * (alpha + 2) * pow(sdot(ray.dir, reflected), alpha);
-        ray.energy *= (diffuse + specular) * sdot(hit.normal, ray.dir);
-        return 0.0f;
+        hit.albedo = min(1 - hit.specular, hit.albedo);
+        float specChance = energy(hit.specular);
+        float diffChance = energy(hit.albedo);
+        float sum = specChance + diffChance;
+        specChance /= sum;
+        diffChance /= sum;
 
-        ray.origin = hit.pos + hit.normal * 0.001;
-        ray.dir = reflect(ray.dir, hit.normal);
-        ray.energy *= hit.specular;
-
-        bool shadow = false;
-        Ray shadowRay = CreateRay(hit.pos + hit.normal * 0.001, -1 * _DirectionalLight.xyz);
-        RayHit shadowHit = Trace(shadowRay);
-        if (shadowHit.dist != 1.#INF)
-		{
-            return float3(0, 0, 0);
+        float roulette = rand();
+        if (roulette < specChance)
+        {
+            ray.origin = hit.pos + hit.normal * 0.001;
+            ray.dir = reflect(ray.dir, hit.normal);
+            ray.energy *= (1 / specChance) * hit.specular * sdot(hit.normal, ray.dir);
         }
-        
-        return saturate(dot(hit.normal, _DirectionalLight.xyz) * -1) * _DirectionalLight.w * hit.albedo;
+        else if (roulette < specChance + diffChance)
+        {
+            ray.origin = hit.pos + hit.normal * 0.001;
+            ray.dir = SampleHemisphere(hit.normal);
+            ray.energy *= (1 / diffChance) * 2 * hit.albedo * sdot(hit.normal, ray.dir);
+        }
+        else
+        {
+            ray.energy = 0.0f;
+        }
+        return 0.0f;
 	}
     else
     {
