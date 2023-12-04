@@ -14,6 +14,7 @@ public class RayTracingManager : MonoBehaviour
     public uint SpheresMax = 100;
     public float SpherePlacementRadius = 100.0f;
     private ComputeBuffer _spheresBuffer;
+    private const int SphereStructSize = 56;
 
     private RenderTexture _target;
     private RenderTexture _converged;
@@ -88,7 +89,7 @@ public class RayTracingManager : MonoBehaviour
             spheres.Add(sphere);
         }
 
-        _spheresBuffer = new ComputeBuffer(spheres.Count, 40);
+        _spheresBuffer = new ComputeBuffer(spheres.Count, SphereStructSize);
         _spheresBuffer.SetData(spheres);
     }
 

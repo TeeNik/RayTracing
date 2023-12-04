@@ -8,5 +8,7 @@ public struct Sphere
     public float radius;
     public Vector3 albedo;
     public Vector3 specular;
+    public float smoothness;
+    public Vector3 emission;
 
 }

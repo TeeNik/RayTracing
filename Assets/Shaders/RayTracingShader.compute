@@ -7,6 +7,8 @@ struct Sphere
     float radius;
     float3 albedo;
     float3 specular;
+    float smoothness;
+    float3 emission;
 };
 
 RWTexture2D<float4> Result;
@@ -91,6 +93,8 @@ struct RayHit
 
     float3 albedo;
     float3 specular;
+    float smoothness;
+    float3 emission;
 };
 
 RayHit CreateRayHit()
@@ -101,6 +105,8 @@ RayHit CreateRayHit()
     hit.normal = float3(0, 0, 0);
     hit.albedo = float3(0, 0, 0);
     hit.specular = float3(0, 0, 0);
+    hit.smoothness = 0;
+    hit.emission = float3(0, 0, 0);
     return hit;
 }
 
@@ -114,12 +120,13 @@ void IntersectGroundPlane(Ray ray, inout RayHit hit)
         hit.normal = float3(0, 1, 0);
         hit.albedo = 0.5f;
         hit.specular = 0.03f;
+        hit.smoothness = 0.2;
+        hit.emission = float3(0, 0, 0);
     }
 }
 
-void IntersectSphere(Ray ray, inout RayHit hit, uint sphereIndex)
+void IntersectSphere(Ray ray, inout RayHit hit, Sphere sphere)
 {
-    Sphere sphere = _Spheres[sphereIndex];
     float3 d = ray.origin - sphere.pos;
     float p1 = -dot(ray.dir, d);
     float p2sqr = p1 * p1 - dot(d, d) + sphere.radius * sphere.radius;
@@ -137,6 +144,8 @@ void IntersectSphere(Ray ray, inout RayHit hit, uint sphereIndex)
         hit.normal = normalize(hit.pos - sphere.pos);
         hit.albedo = sphere.albedo;
         hit.specular = sphere.specular;
+        hit.smoothness = sphere.smoothness;
+        hit.emission = sphere.emission;
     }
 }
 
@@ -150,7 +159,7 @@ RayHit Trace(Ray ray)
 
     for (uint i = 0; i < numSpheres; ++i)
     {
-        IntersectSphere(ray, hit, i);
+        IntersectSphere(ray, hit, _Spheres[i]);
     }
 
     return hit;
