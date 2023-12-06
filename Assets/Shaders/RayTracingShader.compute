@@ -175,6 +175,11 @@ float energy(float3 color)
     return dot(color, 1.0f / 3.0f);
 }
 
+float SmoothnessToPhongAlpha(float s)
+{
+    return pow(1000.0f, s * s);
+}
+
 float3 Shade(inout Ray ray, RayHit hit)
 {
     if (hit.dist < 1.#INF)
@@ -190,24 +195,24 @@ float3 Shade(inout Ray ray, RayHit hit)
         if (roulette < specChance)
         {
             //specular reflection
-            float alpha = 250;
+            float alpha = SmoothnessToPhongAlpha(hit.smoothness);
             ray.origin = hit.pos + hit.normal * 0.001;
             ray.dir = SampleHemisphere(reflect(ray.dir, hit.normal), alpha);
             float f = (alpha + 2) / (alpha + 1);
             ray.energy *= (1 / specChance) * hit.specular * sdot(hit.normal, ray.dir, f);
         }
-        else if (roulette < specChance + diffChance)
+        else if (diffChance > 0 && roulette < specChance + diffChance)
         {
             //diffuse reflection
             ray.origin = hit.pos + hit.normal * 0.001;
             ray.dir = SampleHemisphere(hit.normal, 1.0f);
-            ray.energy *= (1 / diffChance) * 2 * hit.albedo * sdot(hit.normal, ray.dir);
+            ray.energy *= (1 / diffChance) * hit.albedo;
         }
         else
         {
             ray.energy = 0.0f;
         }
-        return 0.0f;
+        return hit.emission;
 	}
     else
     {

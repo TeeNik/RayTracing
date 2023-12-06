@@ -22,6 +22,7 @@ public class RayTracingManager : MonoBehaviour
     private int _currentSample = 0;
     private Material _addMaterial;
 
+
     private void Awake()
     {
         _camera = GetComponent<Camera>();
@@ -83,9 +84,19 @@ public class RayTracingManager : MonoBehaviour
             }
 
             Color color = Random.ColorHSV();
-            bool metal = Random.value < 0.5f;
-            sphere.albedo = metal ? Vector3.zero : new Vector3(color.r, color.g, color.b);
-            sphere.specular = metal ? new Vector3(color.r, color.g, color.b) : Vector3.one * 0.04f;
+            float chance = Random.value;
+            if (chance < 0.8f)
+            {
+                bool metal = Random.value < 0.4f;
+                sphere.albedo = metal ? Vector3.zero : new Vector3(color.r, color.g, color.b);
+                sphere.specular = metal ? new Vector3(color.r, color.g, color.b) : Vector3.one * 0.04f;
+                sphere.smoothness = Random.value;
+            }
+            else
+            {
+                Color emission = Random.ColorHSV(0, 1, 0, 1, 3.0f, 8.0f);
+                sphere.emission = new Vector3(emission.r, emission.g, emission.b);
+            }
             spheres.Add(sphere);
         }
 
@@ -122,26 +133,6 @@ public class RayTracingManager : MonoBehaviour
 
     }
 
-    private void Render(RenderTexture destination)
-    {
-        InitRenderTexture();
-
-        RayTracingShader.SetTexture(0, "Result", _target);
-        int threadGroupsX = Mathf.CeilToInt(Screen.width / 8.0f);
-        int threadGroupsY = Mathf.CeilToInt(Screen.height / 8.0f);
-        RayTracingShader.Dispatch(0, threadGroupsX, threadGroupsY, 1);
-
-        if (_addMaterial == null)
-        {
-            _addMaterial = new Material(Shader.Find("Hidden/AddSampleShader"));
-        }
-        _addMaterial.SetFloat("_Sample", _currentSample);
-        ++_currentSample;
-
-        Graphics.Blit(_target, _converged, _addMaterial);
-        Graphics.Blit(_converged, destination);
-    }
-
     private void InitRenderTexture()
     {
         if (_target == null || _target.width != Screen.width || _target.height != Screen.height)
@@ -169,5 +160,24 @@ public class RayTracingManager : MonoBehaviour
             _currentSample = 0;
         }
     }
-    
+
+    private void Render(RenderTexture destination)
+    {
+        InitRenderTexture();
+
+        RayTracingShader.SetTexture(0, "Result", _target);
+        int threadGroupsX = Mathf.CeilToInt(Screen.width / 8.0f);
+        int threadGroupsY = Mathf.CeilToInt(Screen.height / 8.0f);
+        RayTracingShader.Dispatch(0, threadGroupsX, threadGroupsY, 1);
+
+        if (_addMaterial == null)
+        {
+            _addMaterial = new Material(Shader.Find("Hidden/AddSampleShader"));
+        }
+        _addMaterial.SetFloat("_Sample", _currentSample);
+        ++_currentSample;
+
+        Graphics.Blit(_target, _converged, _addMaterial);
+        Graphics.Blit(_converged, destination);
+    }
 }
