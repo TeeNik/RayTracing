@@ -149,6 +149,39 @@ void IntersectSphere(Ray ray, inout RayHit hit, Sphere sphere)
     }
 }
 
+static const float EPSILON = 1e-8;
+bool IntersectTriangle_MT97(Ray ray, float3 vert0, float3 vert1, float3 vert2,
+    inout float t, inout float u, inout float v)
+{
+    float3 edge1 = vert1 - vert0;
+    float3 edge2 = vert2 - vert0;
+
+    float3 pvec = cross(ray.dir, edge2);
+    float det = dot(edge1, pvec);
+    if (det < EPSILON)
+    {
+        return false;
+    }
+
+    float inv_det = 1 / det;
+    float3 tvec = ray.origin - vert0;
+    u = dot(tvec, pvec) * inv_det;
+    if (u < 0 || u > 1)
+    {
+        return false;
+    }
+
+    float3 qvec = cross(tvec, edge1);
+    v = dot(ray.dir, qvec) * inv_det;
+    if (v < 0 || v > 1)
+    {
+        return false;
+    }
+
+    t = dot(edge2, qvec) * inv_det;
+    return true;
+}
+
 RayHit Trace(Ray ray)
 {
     RayHit hit = CreateRayHit();
