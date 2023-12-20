@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
+[RequireComponent(typeof(MeshRenderer))]
+[RequireComponent(typeof(MeshFilter))]
 public class RayTracingObject : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    private void OnEnable()
     {
-        
+        RayTracingManager.RegisterObject(this);
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnDisable()
     {
-        
+        RayTracingManager.UnregisterObject(this);
     }
 }
