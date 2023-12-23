@@ -16,4 +16,14 @@ public class RayTracingObject : MonoBehaviour
     {
         RayTracingManager.UnregisterObject(this);
     }
+
+    private void Update()
+    {
+        if (transform.hasChanged)
+        {
+            RayTracingManager.RegisterObject(this);
+            RayTracingManager.UnregisterObject(this);
+            transform.hasChanged = false;
+        }
+    }
 }
