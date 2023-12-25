@@ -223,6 +223,7 @@ public class RayTracingManager : MonoBehaviour
 
         _meshObjectsNeedRebuilding = false;
         _currentSample = 0;
+
         _meshObjects.Clear();
         _vertices.Clear();
         _indices.Clear();
@@ -230,12 +231,14 @@ public class RayTracingManager : MonoBehaviour
         foreach (RayTracingObject obj in _rayTracingObjects)
         {
             Mesh mesh = obj.GetComponent<MeshFilter>().sharedMesh;
+
             int firstVertex = _vertices.Count;
             _vertices.AddRange(mesh.vertices);
-            
+
             int firstIndex = _indices.Count;
             var indices = mesh.GetIndices(0);
-            _indices.AddRange(indices.Select(index => index + firstIndex));
+            _indices.AddRange(indices.Select(index => index + firstVertex));
+
             _meshObjects.Add(new MeshObject()
             {
                 localToWorldMatrix = obj.transform.localToWorldMatrix,

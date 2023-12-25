@@ -196,11 +196,12 @@ void IntersectMeshObject(Ray ray, inout RayHit hit, MeshObject mesh)
 {
     uint offset = mesh.indicesOffset;
     uint count = offset + mesh.indicesCount;
-    for (uint i = 0; i < count; i +=3)
+    for (uint i = offset; i < count; i += 3)
     {
         float3 v0 = (mul(mesh.localToWorldMatrix, float4(_Vertices[_Indices[i]], 1))).xyz;
         float3 v1 = (mul(mesh.localToWorldMatrix, float4(_Vertices[_Indices[i + 1]], 1))).xyz;
         float3 v2 = (mul(mesh.localToWorldMatrix, float4(_Vertices[_Indices[i + 2]], 1))).xyz;
+
         float t, u, v;
         if (IntersectTriangle_MT97(ray, v0, v1, v2, t, u, v))
         {
