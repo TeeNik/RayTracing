@@ -1,6 +1,8 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
+#include "RayTracingObject.cginc"
+
 struct Sphere
 {
     float3 pos;
@@ -28,12 +30,6 @@ float _Seed;
 static const float PI = 3.14159265f;
 static const float EPSILON = 1e-8;
 
-struct MeshObject
-{
-    float4x4 localToWorldMatrix;
-    int indicesOffset;
-    int indicesCount;
-};
 StructuredBuffer<MeshObject> _MeshObjects;
 StructuredBuffer<float3> _Vertices;
 StructuredBuffer<int> _Indices;
