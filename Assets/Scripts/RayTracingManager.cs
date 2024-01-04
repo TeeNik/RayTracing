@@ -43,6 +43,7 @@ public class RayTracingManager : MonoBehaviour
         public Matrix4x4 localToWorldMatrix;
         public int indicesOffset;
         public int indicesCount;
+        public RayTracingMaterial material;
     }
 
     private static List<MeshInfo> _meshObjects = new List<MeshInfo>();
@@ -61,7 +62,6 @@ public class RayTracingManager : MonoBehaviour
     {
         _currentSample = 0;
         SetUpScene();
-        
     }
 
     private void OnDisable()
@@ -126,6 +126,18 @@ public class RayTracingManager : MonoBehaviour
                 Color emission = Random.ColorHSV(0, 1, 0, 1, 3.0f, 8.0f);
                 sphere.emission = new Vector3(emission.r, emission.g, emission.b);
             }
+            spheres.Add(sphere);
+        }
+
+        foreach (var Sphere in Resources.FindObjectsOfTypeAll<RayTracingSphere>())
+        {
+            Sphere sphere = new Sphere();
+            sphere.pos = Sphere.transform.position;
+            sphere.radius = Sphere.Radius;
+            sphere.albedo = Sphere.Material.albedo;
+            sphere.specular = Sphere.Material.specular;
+            sphere.smoothness = Sphere.Material.smoothness;
+            sphere.emission = Sphere.Material.emission;
             spheres.Add(sphere);
         }
 
@@ -243,7 +255,8 @@ public class RayTracingManager : MonoBehaviour
             {
                 localToWorldMatrix = obj.transform.localToWorldMatrix,
                 indicesOffset = firstIndex,
-                indicesCount = indices.Length
+                indicesCount = indices.Length,
+                material = obj.Material
             });
         }
 
