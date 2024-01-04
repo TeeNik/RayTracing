@@ -38,14 +38,14 @@ public class RayTracingManager : MonoBehaviour
         _meshObjectsNeedRebuilding = true;
     }
 
-    struct MeshObject
+    struct MeshInfo
     {
         public Matrix4x4 localToWorldMatrix;
         public int indicesOffset;
         public int indicesCount;
     }
 
-    private static List<MeshObject> _meshObjects = new List<MeshObject>();
+    private static List<MeshInfo> _meshObjects = new List<MeshInfo>();
     private static List<Vector3> _vertices = new List<Vector3>();
     private static List<int> _indices = new List<int>();
     private ComputeBuffer _meshObjectBuffer;
@@ -239,7 +239,7 @@ public class RayTracingManager : MonoBehaviour
             var indices = mesh.GetIndices(0);
             _indices.AddRange(indices.Select(index => index + firstVertex));
 
-            _meshObjects.Add(new MeshObject()
+            _meshObjects.Add(new MeshInfo()
             {
                 localToWorldMatrix = obj.transform.localToWorldMatrix,
                 indicesOffset = firstIndex,
@@ -247,30 +247,9 @@ public class RayTracingManager : MonoBehaviour
             });
         }
 
-        CreateComputeBuffer(ref _meshObjectBuffer, _meshObjects, 72);
-        CreateComputeBuffer(ref _vertexBuffer, _vertices, 12);
-        CreateComputeBuffer(ref _indexBuffer, _indices, 4);
-    }
-
-    private static void CreateComputeBuffer<T>(ref ComputeBuffer buffer, List<T> data, int stride) where T : struct
-    {
-        if (buffer != null)
-        {
-            if (data.Count == 0 || buffer.count != data.Count || buffer.stride != stride)
-            {
-                buffer.Release();
-                buffer = null;
-            }
-        }
-
-        if (data.Count != 0)
-        {
-            if (buffer == null)
-            {
-                buffer = new ComputeBuffer(data.Count, stride);
-            }
-            buffer.SetData(data);
-        }
+        ShaderUtils.CreateComputeBuffer(ref _meshObjectBuffer, _meshObjects);
+        ShaderUtils.CreateComputeBuffer(ref _vertexBuffer, _vertices);
+        ShaderUtils.CreateComputeBuffer(ref _indexBuffer, _indices);
     }
 
     private void SetComputeBuffer(string name, ComputeBuffer buffer)
