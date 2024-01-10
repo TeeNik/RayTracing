@@ -6,9 +6,5 @@ public struct Sphere
 {
     public Vector3 pos;
     public float radius;
-    public Vector3 albedo;
-    public Vector3 specular;
-    public float smoothness;
-    public Vector3 emission;
-
+    public RayTracingMaterial material;
 }
