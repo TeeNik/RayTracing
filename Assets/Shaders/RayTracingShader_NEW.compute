@@ -31,6 +31,31 @@ float rand()
     return result;
 }
 
+// Random value in normal distribution (with mean=0 and sd=1)
+float RandomValueNormalDistribution()
+{
+    // Thanks to https://stackoverflow.com/a/6178290
+    float theta = 2 * 3.1415926 * rand();
+    float rho = sqrt(-2 * log(rand()));
+    return rho * cos(theta);
+}
+
+// Calculate a random direction
+float3 RandomDirection()
+{
+    // Thanks to https://math.stackexchange.com/a/1585996
+    float x = RandomValueNormalDistribution();
+    float y = RandomValueNormalDistribution();
+    float z = RandomValueNormalDistribution();
+    return normalize(float3(x, y, z));
+}
+
+float3 RandomHemisphereDirection(float3 normal)
+{
+    float3 dir = RandomDirection();
+    return dir * sign(dot(normal, dir));
+}
+
 float3x3 GetTangentSpace(float3 normal)
 {
     float3 helper = float3(1, 0, 0);
@@ -149,11 +174,26 @@ void IntersectMeshObject(Ray ray, inout RayHit hit, MeshObject mesh)
     }
 }
 
+float sdot(float3 x, float3 y, float f = 1.0f)
+{
+    return saturate(dot(x, y) * f);
+}
+
+float energy(float3 color)
+{
+    return dot(color, 1.0f / 3.0f);
+}
+
+float SmoothnessToPhongAlpha(float s)
+{
+    return pow(1000.0f, s * s);
+}
+
 RayHit Trace(Ray ray)
 {
     RayHit hit = CreateRayHit();
     uint count, stride;
-    IntersectGroundPlane(ray, hit);
+    //IntersectGroundPlane(ray, hit);
 
     _Spheres.GetDimensions(count, stride);
     for (uint i = 0; i < count; ++i)
@@ -170,62 +210,75 @@ RayHit Trace(Ray ray)
     return hit;
 }
 
-float sdot(float3 x, float3 y, float f = 1.0f)
+float3 Shade(inout Ray ray)
 {
-    return saturate(dot(x, y) * f);
-}
+    float3 result = float3(0, 0, 0);
 
-float energy(float3 color)
-{
-    return dot(color, 1.0f / 3.0f);
-}
+    for (int i = 0; i < 8; ++i)
+    {
+        RayHit hit = Trace(ray);
 
-float SmoothnessToPhongAlpha(float s)
-{
-    return pow(1000.0f, s * s);
-}
-
-float3 Shade(inout Ray ray, RayHit hit)
-{
-    if (hit.dist < 1.#INF)
-	{
-        //hit.albedo = min(1 - hit.specular, hit.albedo);
-        float specChance = energy(hit.material.specular);
-        float diffChance = energy(hit.material.albedo);
-        float sum = specChance + diffChance;
-        specChance /= sum;
-        diffChance /= sum;
-
-        float roulette = rand();
-        if (roulette < specChance)
+        if (hit.dist < 1.#INF)
         {
-            //specular reflection
-            float alpha = SmoothnessToPhongAlpha(hit.material.smoothness);
             ray.origin = hit.pos + hit.normal * 0.001;
-            ray.dir = SampleHemisphere(reflect(ray.dir, hit.normal), alpha);
-            float f = (alpha + 2) / (alpha + 1);
-            ray.energy *= (1 / specChance) * hit.material.specular * sdot(hit.normal, ray.dir, f);
-        }
-        else if (diffChance > 0 && roulette < specChance + diffChance)
-        {
-            //diffuse reflection
-            ray.origin = hit.pos + hit.normal * 0.001;
-            ray.dir = SampleHemisphere(hit.normal, 1.0f);
-            ray.energy *= (1 / diffChance) * hit.material.albedo;
+            ray.dir = RandomHemisphereDirection(hit.normal);
+
+            const Material material = hit.material;
+            const float3 emittedLight = material.emission;
+            const float lightStrength = dot(hit.normal, ray.dir);
+            result += emittedLight * ray.energy;
+            ray.energy *= material.albedo;
+
+            continue;
+
+            //hit.albedo = min(1 - hit.specular, hit.albedo);
+            float specChance = energy(hit.material.specular);
+            float diffChance = energy(hit.material.albedo);
+            float sum = specChance + diffChance;
+            specChance /= sum;
+            diffChance /= sum;
+
+            float roulette = rand();
+            if (roulette < specChance)
+            {
+                //specular reflection
+                float alpha = SmoothnessToPhongAlpha(hit.material.smoothness);
+                ray.origin = hit.pos + hit.normal * 0.001;
+                ray.dir = SampleHemisphere(reflect(ray.dir, hit.normal), alpha);
+                float f = (alpha + 2) / (alpha + 1);
+                ray.energy *= (1 / specChance) * hit.material.specular * sdot(hit.normal, ray.dir, f);
+            }
+            else if (diffChance > 0 && roulette < specChance + diffChance)
+            {
+                //diffuse reflection
+                ray.origin = hit.pos + hit.normal * 0.001;
+                ray.dir = SampleHemisphere(hit.normal, 1.0f);
+                ray.energy *= (1 / diffChance) * hit.material.albedo;
+            }
+            else
+            {
+                ray.energy = 0.0f;
+            }
+            return hit.material.emission;
         }
         else
         {
-            ray.energy = 0.0f;
+            float3 e = ray.energy;
+            ray.energy = 0;
+            float theta = acos(ray.dir.y) / -PI;
+            float pi = atan2(ray.dir.x, -ray.dir.z) / -PI * 0.5;
+            //result += float3(1, 1, 1);
+            //result += _SkyboxTexture.SampleLevel(sampler_SkyboxTexture, float2(pi, theta), 0).xyz;
+            break;
         }
-        return hit.material.emission;
-	}
-    else
-    {
-        ray.energy = 0;
-        float theta = acos(ray.dir.y) / -PI;
-        float pi = atan2(ray.dir.x, -ray.dir.z) / -PI * 0.5;
-        return _SkyboxTexture.SampleLevel(sampler_SkyboxTexture, float2(pi, theta), 0).xyz;
+
+        if (!any(ray.energy))
+        {
+            break;
+        }
     }
+
+    return result;
 }
 
 [numthreads(8,8,1)]
@@ -239,22 +292,6 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float2 uv = float2((id.xy + _PixelOffset) / float2(width, height) * 2 - 1);
     Ray ray = CreateCameraRay(uv, _CameraToWorld, _CameraInverseProjection);
 
-    float3 result = float3(0, 0, 0);
-    for (int i = 0; i < 8; ++i)
-    {
-        RayHit hit = Trace(ray);
-        result += ray.energy * Shade(ray, hit);
-        if (!any(ray.energy))
-        {
-            break;
-        }
-    }
-
-    //RayHit hit = Trace(ray);
-    //float3 result = Shade(ray, hit);
-
-	//Result[id.xy] = float4(result, 1);
-
-    Result[id.xy] = float4(ray.dir, 1);
-    //Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+    float3 result = Shade(ray);
+    Result[id.xy] = float4(result, 1);
 }
