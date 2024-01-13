@@ -18,6 +18,25 @@ public class RayTracingObject : MonoBehaviour
 {
     public RayTracingMaterial Material;
 
+    [SerializeField, HideInInspector] int materialId;
+    [SerializeField, HideInInspector] bool materialInited;
+
+    private void OnValidate()
+    {
+        MeshRenderer renderer = GetComponent<MeshRenderer>();
+        if (renderer != null)
+        {
+            if (materialId != gameObject.GetInstanceID())
+            {
+                renderer.sharedMaterial = new Material(renderer.sharedMaterial);
+                materialId = gameObject.GetInstanceID();
+            }
+
+            Vector3 color = Material.albedo;
+            renderer.sharedMaterial.color = new Color(color.x, color.y, color.z);
+        }
+    }
+
     private void OnEnable()
     {
         RayTracingManager.RegisterObject(this);
