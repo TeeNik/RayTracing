@@ -4,6 +4,7 @@ struct Material
     float3 specular;
     float smoothness;
     float3 emission;
+    float specularChance;
 };
 
 struct Sphere

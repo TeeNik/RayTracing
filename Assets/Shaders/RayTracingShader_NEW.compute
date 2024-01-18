@@ -223,13 +223,14 @@ float3 Shade(inout Ray ray)
             const Material material = hit.material;
 
             ray.origin = hit.pos + hit.normal * 0.001;
-            float3 diffuseDir = normalize(hit.normal + RandomDirection());
-            float3 specularDir = reflect(ray.dir, hit.normal);
-            ray.dir = lerp(diffuseDir, specularDir, hit.material.smoothness);
+            const float3 diffuseDir = normalize(hit.normal + RandomDirection());
+            const float3 specularDir = reflect(ray.dir, hit.normal);
+            const bool isSpecularBounce = material.specularChance >= rand();
+            ray.dir = lerp(diffuseDir, specularDir, material.smoothness * isSpecularBounce);
 
             const float3 emittedLight = material.emission;
             result += emittedLight * ray.energy;
-            ray.energy *= material.albedo;
+            ray.energy *= lerp(material.albedo, material.specular, isSpecularBounce);
 
             continue;
 

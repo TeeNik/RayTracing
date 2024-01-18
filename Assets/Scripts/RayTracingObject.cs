@@ -10,6 +10,7 @@ public struct RayTracingMaterial
     public Vector3 specular;
     public float smoothness;
     public Vector3 emission;
+    public float specularChance;
 }
 
 [RequireComponent(typeof(MeshRenderer))]
