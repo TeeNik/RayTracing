@@ -6,11 +6,18 @@ using UnityEngine;
 [Serializable]
 public struct RayTracingMaterial
 {
+    public enum MaterialFlag
+    {
+        None,
+        CheckerPattern,
+    }
+
     public Vector3 albedo;
     public Vector3 specular;
     public float smoothness;
     public Vector3 emission;
     public float specularChance;
+    public MaterialFlag flag;
 }
 
 [RequireComponent(typeof(MeshRenderer))]
