@@ -174,6 +174,11 @@ void IntersectMeshObject(Ray ray, inout RayHit hit, MeshObject mesh)
     }
 }
 
+float2 mod2(float2 x, float2 y)
+{
+    return x - y * floor(x / y);
+}
+
 float sdot(float3 x, float3 y, float f = 1.0f)
 {
     return saturate(dot(x, y) * f);
@@ -220,7 +225,13 @@ float3 Shade(inout Ray ray)
 
         if (hit.dist < 1.#INF)
         {
-            const Material material = hit.material;
+            Material material = hit.material;
+
+            if (material.flag == CheckerPattern)
+            {
+                float2 c = mod2(floor(hit.pos.xz), 2.0);
+                material.albedo = c.x == c.y ? material.albedo : material.specular;
+            }
 
             ray.origin = hit.pos + hit.normal * 0.001;
             const float3 diffuseDir = normalize(hit.normal + RandomDirection());
@@ -231,47 +242,13 @@ float3 Shade(inout Ray ray)
             const float3 emittedLight = material.emission;
             result += emittedLight * ray.energy;
             ray.energy *= lerp(material.albedo, material.specular, isSpecularBounce);
-
-            continue;
-
-            //hit.albedo = min(1 - hit.specular, hit.albedo);
-            float specChance = energy(hit.material.specular);
-            float diffChance = energy(hit.material.albedo);
-            float sum = specChance + diffChance;
-            specChance /= sum;
-            diffChance /= sum;
-
-            float roulette = rand();
-            if (roulette < specChance)
-            {
-                //specular reflection
-                float alpha = SmoothnessToPhongAlpha(hit.material.smoothness);
-                ray.origin = hit.pos + hit.normal * 0.001;
-                ray.dir = SampleHemisphere(reflect(ray.dir, hit.normal), alpha);
-                float f = (alpha + 2) / (alpha + 1);
-                ray.energy *= (1 / specChance) * hit.material.specular * sdot(hit.normal, ray.dir, f);
-            }
-            else if (diffChance > 0 && roulette < specChance + diffChance)
-            {
-                //diffuse reflection
-                ray.origin = hit.pos + hit.normal * 0.001;
-                ray.dir = SampleHemisphere(hit.normal, 1.0f);
-                ray.energy *= (1 / diffChance) * hit.material.albedo;
-            }
-            else
-            {
-                ray.energy = 0.0f;
-            }
-            return hit.material.emission;
         }
         else
         {
-            float3 e = ray.energy;
             ray.energy = 0;
             float theta = acos(ray.dir.y) / -PI;
             float pi = atan2(ray.dir.x, -ray.dir.z) / -PI * 0.5;
-            //result += _SkyboxTexture.SampleLevel(sampler_SkyboxTexture, float2(pi, theta), 0).xyz * 0.15;
-            break;
+            result += _SkyboxTexture.SampleLevel(sampler_SkyboxTexture, float2(pi, theta), 0).xyz * 0.15;
         }
 
         if (!any(ray.energy))

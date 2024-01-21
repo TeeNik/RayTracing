@@ -1,3 +1,5 @@
+static const int CheckerPattern = 1;
+
 struct Material
 {
     float3 albedo;
