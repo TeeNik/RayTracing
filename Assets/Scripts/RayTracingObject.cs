@@ -9,7 +9,8 @@ public struct RayTracingMaterial
     public enum MaterialFlag
     {
         None,
-        CheckerPattern,
+        CheckerPattern = 1,
+        HasTexture = 2,
     }
 
     public Vector3 albedo;

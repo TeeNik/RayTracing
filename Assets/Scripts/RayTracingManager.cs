@@ -7,6 +7,7 @@ public class RayTracingManager : MonoBehaviour
 {
     public ComputeShader RayTracingShader;
     public Texture SkyboxTexture;
+    public Texture CubeTexture;
     public Light DirectionalLight;
 
     [Header("Scene SetUp")] 
@@ -53,6 +54,9 @@ public class RayTracingManager : MonoBehaviour
     private ComputeBuffer _vertexBuffer;
     private ComputeBuffer _indexBuffer;
 
+    private static List<Vector2> _uvs = new List<Vector2>();
+    private ComputeBuffer _uvBuffer;
+
     private void Awake()
     {
         _camera = GetComponent<Camera>();
@@ -70,6 +74,8 @@ public class RayTracingManager : MonoBehaviour
         _meshObjectBuffer?.Release();
         _vertexBuffer?.Release();
         _indexBuffer?.Release();
+        
+        _uvBuffer?.Release();
     }
 
     private void SetUpScene()
@@ -161,6 +167,7 @@ public class RayTracingManager : MonoBehaviour
     {
         RayTracingShader.SetFloat("_Seed", Random.value);
         RayTracingShader.SetTexture(0, "_SkyboxTexture", SkyboxTexture);
+        RayTracingShader.SetTexture(0, "_CubeTexture", CubeTexture);
         RayTracingShader.SetVector("_PixelOffset", new Vector2(Random.value, Random.value));
         RayTracingShader.SetMatrix("_CameraToWorld", _camera.cameraToWorldMatrix);
         RayTracingShader.SetMatrix("_CameraInverseProjection", _camera.projectionMatrix.inverse);
@@ -172,6 +179,8 @@ public class RayTracingManager : MonoBehaviour
         SetComputeBuffer("_MeshObjects", _meshObjectBuffer);
         SetComputeBuffer("_Vertices", _vertexBuffer);
         SetComputeBuffer("_Indices", _indexBuffer);
+        
+        SetComputeBuffer("_Uvs", _uvBuffer);
     }
 
     private void InitRenderTexture()
@@ -235,6 +244,8 @@ public class RayTracingManager : MonoBehaviour
         _meshObjects.Clear();
         _vertices.Clear();
         _indices.Clear();
+        
+        _uvs.Clear();
 
         foreach (RayTracingObject obj in _rayTracingObjects)
         {
@@ -246,6 +257,8 @@ public class RayTracingManager : MonoBehaviour
             int firstIndex = _indices.Count;
             var indices = mesh.GetIndices(0);
             _indices.AddRange(indices.Select(index => index + firstVertex));
+
+            _uvs.AddRange(mesh.uv);
 
             _meshObjects.Add(new MeshInfo()
             {
@@ -259,6 +272,8 @@ public class RayTracingManager : MonoBehaviour
         ShaderUtils.CreateComputeBuffer(ref _meshObjectBuffer, _meshObjects);
         ShaderUtils.CreateComputeBuffer(ref _vertexBuffer, _vertices);
         ShaderUtils.CreateComputeBuffer(ref _indexBuffer, _indices);
+        
+        ShaderUtils.CreateComputeBuffer(ref _uvBuffer, _uvs);
     }
 
     private void SetComputeBuffer(string name, ComputeBuffer buffer)
