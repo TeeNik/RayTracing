@@ -1,4 +1,5 @@
 static const int CheckerPattern = 1;
+static const int HasTexture = 2;
 
 struct Material
 {
@@ -56,6 +57,7 @@ struct RayHit
     float dist;
     float3 normal;
     Material material;
+    float2 uv;
 };
 
 RayHit CreateRayHit()
@@ -68,5 +70,6 @@ RayHit CreateRayHit()
     hit.material.specular = float3(0, 0, 0);
     hit.material.smoothness = 0;
     hit.material.emission = float3(0, 0, 0);
+    hit.uv = float2(0,0);
     return hit;
 }
