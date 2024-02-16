@@ -3,7 +3,7 @@ using UnityEngine;
 public class RayTracingSphere : MonoBehaviour
 {
     public float Radius;
-    public RayTracingMaterial Material;
+    public RayTracingMaterial_Editor Material;
 
     [SerializeField, HideInInspector] int materialId;
     [SerializeField, HideInInspector] bool materialInited;
@@ -22,8 +22,7 @@ public class RayTracingSphere : MonoBehaviour
                 materialId = gameObject.GetInstanceID();
             }
 
-            Vector3 color = Material.albedo;
-            renderer.sharedMaterial.color = new Color(color.x, color.y, color.z);
+            renderer.sharedMaterial.color = Material.albedo;
         }
     }
 }

@@ -140,7 +140,7 @@ public class RayTracingManager : MonoBehaviour
             Sphere sphere = new Sphere();
             sphere.pos = Sphere.transform.position;
             sphere.radius = Sphere.Radius;
-            sphere.material = Sphere.Material;
+            sphere.material = Sphere.Material.GetMaterialForShader();
             spheres.Add(sphere);
         }
 
@@ -265,7 +265,7 @@ public class RayTracingManager : MonoBehaviour
                 localToWorldMatrix = obj.transform.localToWorldMatrix,
                 indicesOffset = firstIndex,
                 indicesCount = indices.Length,
-                material = obj.Material
+                material = obj.Material.GetMaterialForShader()
             });
         }
 
