@@ -8,6 +8,7 @@ public enum MaterialFlag
     None,
     CheckerPattern = 1,
     HasTexture = 2,
+    Invisible = 3,
 }
 
 [Serializable]

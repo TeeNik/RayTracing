@@ -1,5 +1,6 @@
 static const int CheckerPattern = 1;
 static const int HasTexture = 2;
+static const int Invisible = 3;
 
 struct Material
 {

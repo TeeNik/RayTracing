@@ -239,9 +239,14 @@ float3 Shade(inout Ray ray)
                 float2 c = mod2(floor(hit.pos.xz), 2.0);
                 material.albedo = c.x == c.y ? material.albedo : material.specular;
             }
-            if (material.flag == HasTexture)
+            else if (material.flag == HasTexture)
             {
                 material.albedo = _CubeTexture.SampleLevel(sampler_CubeTexture, hit.uv, 0).xyz;
+            }
+            else if (material.flag == Invisible && i == 0)
+            {
+                ray.origin = hit.pos + ray.dir * 0.001;
+                continue;
             }
 
             ray.origin = hit.pos + hit.normal * 0.001;
