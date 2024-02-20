@@ -15,9 +15,10 @@ public enum MaterialFlag
 public struct RayTracingMaterial_Editor
 {
     public Color albedo;
-    public Vector3 specular;
+    public Color specular;
     public float smoothness;
-    public Vector3 emission;
+    public Color emission;
+    public float emissionStrength;
     public float specularChance;
     public MaterialFlag flag;
 
@@ -26,9 +27,10 @@ public struct RayTracingMaterial_Editor
         return new RayTracingMaterial()
         {
             albedo = new Vector3(albedo.r, albedo.g, albedo.b),
-            specular = this.specular,
+            specular = new Vector3(specular.r, specular.g, specular.b),
             smoothness = this.smoothness,
-            emission = this.emission,
+            emission = new Vector3(emission.r, emission.g, emission.b),
+            emissionStrength = this.emissionStrength,
             specularChance = this.specularChance,
             flag = this.flag
         };
@@ -41,6 +43,7 @@ public struct RayTracingMaterial
     public Vector3 specular;
     public float smoothness;
     public Vector3 emission;
+    public float emissionStrength;
     public float specularChance;
     public MaterialFlag flag;
     

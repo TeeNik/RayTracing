@@ -255,7 +255,7 @@ float3 Shade(inout Ray ray)
             const bool isSpecularBounce = material.specularChance >= rand();
             ray.dir = lerp(diffuseDir, specularDir, material.smoothness * isSpecularBounce);
 
-            const float3 emittedLight = material.emission;
+            const float3 emittedLight = material.emission * material.emissionStrength;
             result += emittedLight * ray.energy;
             ray.energy *= lerp(material.albedo, material.specular, isSpecularBounce);
         }

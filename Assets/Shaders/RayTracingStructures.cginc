@@ -8,6 +8,7 @@ struct Material
     float3 specular;
     float smoothness;
     float3 emission;
+    float emissionStrength;
     float specularChance;
     int flag;
 };
@@ -61,16 +62,26 @@ struct RayHit
     float2 uv;
 };
 
+Material CreateMaterial()
+{
+    Material material;
+    material.albedo = float3(0, 0, 0);
+    material.specular = float3(0, 0, 0);
+    material.smoothness = 0;
+    material.emission = float3(0, 0, 0);
+    material.emissionStrength = 0;
+    material.specularChance = 0;
+    material.flag = 0;
+    return material;
+}
+
 RayHit CreateRayHit()
 {
     RayHit hit;
     hit.pos = float3(0, 0, 0);
     hit.dist = 1.#INF;
     hit.normal = float3(0, 0, 0);
-    hit.material.albedo = float3(0, 0, 0);
-    hit.material.specular = float3(0, 0, 0);
-    hit.material.smoothness = 0;
-    hit.material.emission = float3(0, 0, 0);
+    hit.material = CreateMaterial();
     hit.uv = float2(0,0);
     return hit;
 }
