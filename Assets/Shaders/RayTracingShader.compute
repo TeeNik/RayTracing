@@ -1,6 +1,8 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
+#include <UnityShaderVariables.cginc>
+
 #include "RayTracingStructures.cginc"
 
 RWTexture2D<float4> Result;
@@ -201,6 +203,17 @@ float SmoothnessToPhongAlpha(float s)
     return pow(1000.0f, s * s);
 }
 
+float3 GetEnvironmentLight(Ray ray)
+{
+    float skyGradientT = pow(smoothstep(0, 0.4, ray.dir.y), 0.35);
+    float groundToSkyT = smoothstep(-0.01, 0, ray.dir.y);
+    float3 skyGradient = lerp(float3(1,1,1), float3(0.08,.36, .72), skyGradientT);
+    float sun = pow(max(0, dot(ray.dir, _WorldSpaceLightPos0.xyz)), 500) * 200;
+    // Combine ground, sky, and sun
+    float3 composite = lerp(float3(.35, .3, .35), skyGradient, groundToSkyT) + sun * (groundToSkyT>=1);
+    return composite;
+}
+
 RayHit Trace(Ray ray)
 {
     RayHit hit = CreateRayHit();
@@ -261,10 +274,11 @@ float3 Shade(inout Ray ray)
         }
         else
         {
-            ray.energy = 0;
             float theta = acos(ray.dir.y) / -PI;
             float pi = atan2(ray.dir.x, -ray.dir.z) / -PI * 0.5;
             //result += _SkyboxTexture.SampleLevel(sampler_SkyboxTexture, float2(pi, theta), 0).xyz * 0.15;
+            result += GetEnvironmentLight(ray) * 0.5f * ray.energy;
+            break;
         }
 
         if (!any(ray.energy))
