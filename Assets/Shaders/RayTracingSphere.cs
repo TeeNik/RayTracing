@@ -1,3 +1,4 @@
+using UnityEditor;
 using UnityEngine;
 
 public class RayTracingSphere : MonoBehaviour
@@ -10,19 +11,22 @@ public class RayTracingSphere : MonoBehaviour
 
     private void OnValidate()
     {
-        float d = Radius * 2;
-        transform.localScale = new Vector3(d, d, d);
-
-        MeshRenderer renderer = GetComponent<MeshRenderer>();
-        if (renderer != null)
+        if (!EditorUtility.IsPersistent(this))
         {
-            if (materialId != gameObject.GetInstanceID())
-            {
-                renderer.sharedMaterial = new Material(renderer.sharedMaterial);
-                materialId = gameObject.GetInstanceID();
-            }
+            float d = Radius * 2;
+            transform.localScale = new Vector3(d, d, d);
 
-            renderer.sharedMaterial.color = Material.albedo;
+            MeshRenderer renderer = GetComponent<MeshRenderer>();
+            if (renderer != null)
+            {
+                if (materialId != gameObject.GetInstanceID())
+                {
+                    renderer.sharedMaterial = new Material(renderer.sharedMaterial);
+                    materialId = gameObject.GetInstanceID();
+                }
+
+                renderer.sharedMaterial.color = Material.albedo;
+            }
         }
     }
 }

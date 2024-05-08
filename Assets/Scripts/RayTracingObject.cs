@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public enum MaterialFlag
@@ -60,16 +61,19 @@ public class RayTracingObject : MonoBehaviour
 
     private void OnValidate()
     {
-        MeshRenderer renderer = GetComponent<MeshRenderer>();
-        if (renderer != null)
+        if (!EditorUtility.IsPersistent(this))
         {
-            if (materialId != gameObject.GetInstanceID())
+            MeshRenderer renderer = GetComponent<MeshRenderer>();
+            if (renderer != null)
             {
-                renderer.sharedMaterial = new Material(renderer.sharedMaterial);
-                materialId = gameObject.GetInstanceID();
-            }
+                if (materialId != gameObject.GetInstanceID())
+                {
+                    renderer.sharedMaterial = new Material(renderer.sharedMaterial);
+                    materialId = gameObject.GetInstanceID();
+                }
 
-            renderer.sharedMaterial.color = Material.albedo;
+                renderer.sharedMaterial.color = Material.albedo;
+            }
         }
     }
 
@@ -91,5 +95,13 @@ public class RayTracingObject : MonoBehaviour
             RayTracingManager.UnregisterObject(this);
             transform.hasChanged = false;
         }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Mesh mesh = GetComponent<MeshFilter>().sharedMesh;
+        MeshRenderer renderer = GetComponent<MeshRenderer>();
+        Gizmos.color = new Color(1, 0, 0, 0.5f);
+        Gizmos.DrawCube(renderer.bounds.center, renderer.bounds.extents);
     }
 }
