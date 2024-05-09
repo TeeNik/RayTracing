@@ -125,12 +125,13 @@ public class RayTracingManager : MonoBehaviour
                 bool metal = Random.value < 0.4f;
                 sphere.material.albedo = metal ? Vector3.zero : new Vector3(color.r, color.g, color.b);
                 sphere.material.specular = metal ? new Vector3(color.r, color.g, color.b) : Vector3.one * 0.04f;
+                sphere.material.specularChance = Random.value;
                 sphere.material.smoothness = Random.value;
             }
             else
             {
-                Color emission = Random.ColorHSV(0, 1, 0, 1, 3.0f, 8.0f);
-                sphere.material.emission = new Vector3(emission.r, emission.g, emission.b);
+                sphere.material.emission = new Vector3(color.r, color.g, color.b);
+                sphere.material.emissionStrength = Random.Range(5, 10);
             }
             spheres.Add(sphere);
         }
