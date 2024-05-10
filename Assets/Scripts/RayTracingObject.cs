@@ -96,12 +96,4 @@ public class RayTracingObject : MonoBehaviour
             transform.hasChanged = false;
         }
     }
-
-    private void OnDrawGizmosSelected()
-    {
-        Mesh mesh = GetComponent<MeshFilter>().sharedMesh;
-        MeshRenderer renderer = GetComponent<MeshRenderer>();
-        Gizmos.color = new Color(1, 0, 0, 0.5f);
-        Gizmos.DrawCube(renderer.bounds.center, renderer.bounds.extents);
-    }
 }

@@ -26,6 +26,8 @@ struct MeshObject
     int indicesOffset;
     int indicesCount;
     Material material;
+    float3 boundMin;
+    float3 boundMax;
 };
 
 struct Ray

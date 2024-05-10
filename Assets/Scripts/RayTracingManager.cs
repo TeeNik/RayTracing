@@ -45,6 +45,8 @@ public class RayTracingManager : MonoBehaviour
         public int indicesOffset;
         public int indicesCount;
         public RayTracingMaterial material;
+        public Vector3 boundMin;
+        public Vector3 boundMax;
     }
 
     private static List<MeshInfo> _meshObjects = new List<MeshInfo>();
@@ -251,22 +253,28 @@ public class RayTracingManager : MonoBehaviour
         foreach (RayTracingObject obj in _rayTracingObjects)
         {
             Mesh mesh = obj.GetComponent<MeshFilter>().sharedMesh;
-
+            
             int firstVertex = _vertices.Count;
             _vertices.AddRange(mesh.vertices);
 
             int firstIndex = _indices.Count;
             var indices = mesh.GetIndices(0);
             _indices.AddRange(indices.Select(index => index + firstVertex));
-
             _uvs.AddRange(mesh.uv);
+            
+            MeshRenderer meshRenderer = obj.GetComponent<MeshRenderer>();
+            var bounds = meshRenderer.bounds;
+            Vector3 boundMin = new Vector3(bounds.min.x, bounds.min.y, bounds.min.z);
+            Vector3 boundMax = new Vector3(bounds.max.x, bounds.max.y, bounds.max.z);
 
             _meshObjects.Add(new MeshInfo()
             {
                 localToWorldMatrix = obj.transform.localToWorldMatrix,
                 indicesOffset = firstIndex,
                 indicesCount = indices.Length,
-                material = obj.Material.GetMaterialForShader()
+                material = obj.Material.GetMaterialForShader(),
+                boundMin = boundMin,
+                boundMax = boundMax
             });
         }
 
