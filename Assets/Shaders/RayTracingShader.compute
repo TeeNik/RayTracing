@@ -125,6 +125,16 @@ void IntersectSphere(Ray ray, inout RayHit hit, Sphere sphere)
     }
 }
 
+bool IntersectAABB(Ray ray, float3 boxMin, float3 boxMax) {
+    float3 tMin = (boxMin - ray.origin) / ray.dir;
+    float3 tMax = (boxMax - ray.origin) / ray.dir;
+    float3 t1 = min(tMin, tMax);
+    float3 t2 = max(tMin, tMax);
+    float tNear = max(max(t1.x, t1.y), t1.z);
+    float tFar = min(min(t2.x, t2.y), t2.z);
+    return tNear <= tFar;
+};
+
 bool IntersectTriangle_MT97(Ray ray, float3 vert0, float3 vert1, float3 vert2,
     inout float t, inout float u, inout float v)
 {
@@ -159,25 +169,28 @@ bool IntersectTriangle_MT97(Ray ray, float3 vert0, float3 vert1, float3 vert2,
 
 void IntersectMeshObject(Ray ray, inout RayHit hit, MeshObject mesh)
 {
-    uint offset = mesh.indicesOffset;
-    uint count = offset + mesh.indicesCount;
-    for (uint i = offset; i < count; i += 3)
+    if (IntersectAABB(ray, mesh.boundMin, mesh.boundMax))
     {
-        float3 v0 = (mul(mesh.localToWorldMatrix, float4(_Vertices[_Indices[i]], 1))).xyz;
-        float3 v1 = (mul(mesh.localToWorldMatrix, float4(_Vertices[_Indices[i + 1]], 1))).xyz;
-        float3 v2 = (mul(mesh.localToWorldMatrix, float4(_Vertices[_Indices[i + 2]], 1))).xyz;
-
-        float t, u, v;
-        if (IntersectTriangle_MT97(ray, v0, v1, v2, t, u, v))
+        uint offset = mesh.indicesOffset;
+        uint count = offset + mesh.indicesCount;
+        for (uint i = offset; i < count; i += 3)
         {
-            if (t > 0 && t < hit.dist)
-            {
-                hit.dist = t;
-                hit.pos = ray.origin + t * ray.dir;
-                hit.normal = normalize(cross(v1 - v0, v2 - v0));
-                hit.material = mesh.material;
+            float3 v0 = (mul(mesh.localToWorldMatrix, float4(_Vertices[_Indices[i]], 1))).xyz;
+            float3 v1 = (mul(mesh.localToWorldMatrix, float4(_Vertices[_Indices[i + 1]], 1))).xyz;
+            float3 v2 = (mul(mesh.localToWorldMatrix, float4(_Vertices[_Indices[i + 2]], 1))).xyz;
 
-                hit.uv = u * _Uvs[_Indices[i]] + v * _Uvs[_Indices[i + 1]] + (1 - u - v) * _Uvs[_Indices[i + 2]];
+            float t, u, v;
+            if (IntersectTriangle_MT97(ray, v0, v1, v2, t, u, v))
+            {
+                if (t > 0 && t < hit.dist)
+                {
+                    hit.dist = t;
+                    hit.pos = ray.origin + t * ray.dir;
+                    hit.normal = normalize(cross(v1 - v0, v2 - v0));
+                    hit.material = mesh.material;
+
+                    hit.uv = u * _Uvs[_Indices[i]] + v * _Uvs[_Indices[i + 1]] + (1 - u - v) * _Uvs[_Indices[i + 2]];
+                }
             }
         }
     }
@@ -277,7 +290,7 @@ float3 Shade(inout Ray ray)
             float theta = acos(ray.dir.y) / -PI;
             float pi = atan2(ray.dir.x, -ray.dir.z) / -PI * 0.5;
             //result += _SkyboxTexture.SampleLevel(sampler_SkyboxTexture, float2(pi, theta), 0).xyz * 0.15;
-            result += GetEnvironmentLight(ray) * 0.5f * ray.energy;
+            //result += GetEnvironmentLight(ray) * 0.5f * ray.energy;
             break;
         }
 
