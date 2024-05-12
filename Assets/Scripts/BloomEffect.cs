@@ -22,6 +22,11 @@ public class BloomEffect : MonoBehaviour
     
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
+        ApplyBloomToRenderTexture(source, destination);
+    }
+
+    public void ApplyBloomToRenderTexture(RenderTexture source, RenderTexture destination)
+    {
         if (_bloom == null)
         {
             _bloom = new Material(BloomShader);

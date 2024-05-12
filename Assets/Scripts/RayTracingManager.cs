@@ -18,6 +18,8 @@ public class RayTracingManager : MonoBehaviour
     private ComputeBuffer _spheresBuffer;
     private const int SphereStructSize = 56;
 
+    public BloomEffect BloomEffect;
+
     private RenderTexture _target;
     private RenderTexture _converged;
     private Camera _camera;
@@ -231,7 +233,18 @@ public class RayTracingManager : MonoBehaviour
         ++_currentSample;
 
         Graphics.Blit(_target, _converged, _addMaterial);
-        Graphics.Blit(_converged, destination);
+
+        if (BloomEffect)
+        {
+            var bloomRT = RenderTexture.GetTemporary(Screen.width, Screen.height, 0, _converged.format);
+            BloomEffect.ApplyBloomToRenderTexture(_converged, bloomRT);
+            Graphics.Blit(bloomRT, destination);
+            RenderTexture.ReleaseTemporary(bloomRT);
+        }
+        else
+        {
+            Graphics.Blit(_converged, destination);
+        }
     }
 
     private void RebuildMeshObjectBuffers()
