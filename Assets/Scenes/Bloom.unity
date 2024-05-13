@@ -216,6 +216,7 @@ GameObject:
   - component: {fileID: 690985440}
   - component: {fileID: 690985439}
   - component: {fileID: 690985442}
+  - component: {fileID: 690985443}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -315,6 +316,19 @@ MonoBehaviour:
   Intensity: 0.51
   BloomShader: {fileID: 4800000, guid: 0cf3b90d8357d474f804c7451c585dad, type: 3}
   Debug: 0
+--- !u!114 &690985443
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 690985438}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4e122c2605dffe4786a60b063bf38dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  BloomEffect: {fileID: 690985442}
 --- !u!1 &702354526
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 
-[ExecuteInEditMode, ImageEffectAllowedInSceneView]
 public class BloomEffect : MonoBehaviour
 {
     [Range(1, 16)] public int Iterations = 1;
@@ -20,11 +19,6 @@ public class BloomEffect : MonoBehaviour
     private const int ApplyBloomPass = 3;
     private const int DebugBloomPass = 4;
     
-    private void OnRenderImage(RenderTexture source, RenderTexture destination)
-    {
-        ApplyBloomToRenderTexture(source, destination);
-    }
-
     public void ApplyBloomToRenderTexture(RenderTexture source, RenderTexture destination)
     {
         if (_bloom == null)
