@@ -10,8 +10,6 @@ public class FogEffect : MonoBehaviour
     [Range(0, .2f)] public float Density = 0.025f;
     [Range(0, 10)] public float Power = 6.0f;
 
-    public Camera Camera;
-    
     public Shader FogShader;
     
     [NonSerialized] private Material _fog;
@@ -33,10 +31,6 @@ public class FogEffect : MonoBehaviour
         _fog.SetFloat(DensityID, Density);
         _fog.SetFloat(PowerID, Power);
         
-        _fog.SetMatrix("_CameraToWorld", Camera.cameraToWorldMatrix);
-        _fog.SetMatrix("_CameraInverseProjection", Camera.projectionMatrix.inverse);
-        _fog.SetMatrix("_ViewProjectInverse", (Camera.projectionMatrix * Camera.worldToCameraMatrix).inverse);
-
         Graphics.Blit(source, destination, _fog);
     }
 }

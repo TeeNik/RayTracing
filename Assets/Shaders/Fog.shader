@@ -1,6 +1,6 @@
 // Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
-Shader "Hidden/Fog"
+Shader "Custom/Fog"
 {
     Properties
     {
@@ -42,9 +42,6 @@ Shader "Hidden/Fog"
             sampler2D _MainTex;
             sampler2D _CameraDepthTexture;
 
-            // float4x4 _CameraToWorld;
-            float4x4 _CameraInverseProjection;
-            
 			fixed4 _FogColor;
 			fixed4 _FogColor2;
 			float _FogDensity;
