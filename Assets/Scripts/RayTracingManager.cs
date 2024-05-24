@@ -8,6 +8,7 @@ public class RayTracingManager : MonoBehaviour
     public ComputeShader RayTracingShader;
     public Texture SkyboxTexture;
     public Texture CubeTexture;
+    public Texture2DArray Textures; 
     public Light DirectionalLight;
 
     [Header("Scene SetUp")] 
@@ -19,6 +20,7 @@ public class RayTracingManager : MonoBehaviour
     private const int SphereStructSize = 56;
 
     public BloomEffect BloomEffect;
+    public FogEffect FogEffect;
 
     private RenderTexture _target;
     private RenderTexture _converged;
@@ -172,7 +174,8 @@ public class RayTracingManager : MonoBehaviour
     {
         RayTracingShader.SetFloat("_Seed", Random.value);
         RayTracingShader.SetTexture(0, "_SkyboxTexture", SkyboxTexture);
-        RayTracingShader.SetTexture(0, "_CubeTexture", CubeTexture);
+        //RayTracingShader.SetTexture(0, "_CubeTexture", CubeTexture);
+        RayTracingShader.SetTexture(0, "_Textures", Textures);
         RayTracingShader.SetVector("_PixelOffset", new Vector2(Random.value, Random.value));
         RayTracingShader.SetMatrix("_CameraToWorld", _camera.cameraToWorldMatrix);
         RayTracingShader.SetMatrix("_CameraInverseProjection", _camera.projectionMatrix.inverse);
@@ -238,6 +241,15 @@ public class RayTracingManager : MonoBehaviour
         {
             var bloomRT = RenderTexture.GetTemporary(Screen.width, Screen.height, 0, _converged.format);
             BloomEffect.ApplyBloomToRenderTexture(_converged, bloomRT);
+
+           //if (FogEffect)
+           //{
+           //    var fogRT = RenderTexture.GetTemporary(Screen.width, Screen.height, 0, _converged.format);
+           //    FogEffect.ApplyFogToRenderTexture(bloomRT, fogRT);
+           //    Graphics.Blit(fogRT, destination);
+           //    RenderTexture.ReleaseTemporary(fogRT);
+           //}
+            
             Graphics.Blit(bloomRT, destination);
             RenderTexture.ReleaseTemporary(bloomRT);
         }

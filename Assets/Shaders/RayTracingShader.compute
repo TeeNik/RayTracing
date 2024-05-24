@@ -1,8 +1,9 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
+#pragma target 3.5
 
+#include "UnityCG.cginc" 
 #include <UnityShaderVariables.cginc>
-
 #include "RayTracingStructures.cginc"
 
 RWTexture2D<float4> Result;
@@ -30,6 +31,7 @@ StructuredBuffer<float2> _Uvs;
 Texture2D<float4> _CubeTexture;
 SamplerState sampler_CubeTexture;
 
+UNITY_DECLARE_TEX2DARRAY(_Textures);
 
 float rand()
 {
@@ -223,7 +225,7 @@ float3 GetEnvironmentLight(Ray ray)
     float3 skyGradient = lerp(float3(1,1,1), float3(0.08,.36, .72), skyGradientT);
     float sun = pow(max(0, dot(ray.dir, _WorldSpaceLightPos0.xyz)), 500) * 200;
     // Combine ground, sky, and sun
-    float3 composite = lerp(float3(.35, .3, .35), skyGradient, groundToSkyT) + sun * (groundToSkyT>=1);
+    float3 composite = skyGradient + sun * (groundToSkyT>=1);
     return composite;
 }
 
@@ -251,6 +253,8 @@ RayHit Trace(Ray ray)
 float3 Shade(inout Ray ray)
 {
     float3 result = float3(0, 0, 0);
+    float fogAddition = 0;
+    float3 fogColor = float3(1,1,1);
 
     for (int i = 0; i < 8; ++i)
     {
@@ -267,7 +271,8 @@ float3 Shade(inout Ray ray)
             }
             else if (material.flag == HasTexture)
             {
-                material.albedo = _CubeTexture.SampleLevel(sampler_CubeTexture, hit.uv, 0).xyz;
+                //material.albedo = _CubeTexture.SampleLevel(sampler_CubeTexture, hit.uv, 0).xyz;
+                material.albedo = UNITY_SAMPLE_TEX2DARRAY_LOD(_Textures, float3(hit.uv, 0), 0).xyz;
             }
             else if (material.flag == Invisible && i == 0)
             {
@@ -290,8 +295,27 @@ float3 Shade(inout Ray ray)
             float theta = acos(ray.dir.y) / -PI;
             float pi = atan2(ray.dir.x, -ray.dir.z) / -PI * 0.5;
             //result += _SkyboxTexture.SampleLevel(sampler_SkyboxTexture, float2(pi, theta), 0).xyz * 0.15;
-            //result += GetEnvironmentLight(ray) * 0.5f * ray.energy;
+            result += GetEnvironmentLight(ray) * 0.35f * ray.energy;
+            
+            if (i == 0)
+            {
+                fogColor = GetEnvironmentLight(ray);
+                fogAddition = 1;
+            }
+            
             break;
+        }
+
+        if (i == 0)
+        {
+            float depth = hit.dist;
+            float fogDensity = saturate(depth * 0.10f);
+            fogAddition = pow(fogDensity, 6.0f);
+            //fogColor = GetEnvironmentLight(ray);
+
+            //fogAddition = min(1.f, hit.dist / 50);
+            //fogAddition = smoothstep(.3,.3, fogAddition);
+            
         }
 
         if (!any(ray.energy))
@@ -300,6 +324,10 @@ float3 Shade(inout Ray ray)
         }
     }
 
+    float skyGradientT = ray.dir.y;
+    float3 cc = float3(0,skyGradientT,0);
+    result = lerp(result, float3(1,1,1), fogAddition);
+    //return float3(fogAddition,fogAddition,fogAddition);
     return result;
 }
 
