@@ -285,7 +285,9 @@ public class RayTracingManager : MonoBehaviour
             int firstIndex = _indices.Count;
             var indices = mesh.GetIndices(0);
             _indices.AddRange(indices.Select(index => index + firstVertex));
-            _uvs.AddRange(mesh.uv);
+
+            var uvs = mesh.uv.Length > 0 ? mesh.uv : new Vector2[_vertices.Count];
+            _uvs.AddRange(uvs);
             
             MeshRenderer meshRenderer = obj.GetComponent<MeshRenderer>();
             var bounds = meshRenderer.bounds;

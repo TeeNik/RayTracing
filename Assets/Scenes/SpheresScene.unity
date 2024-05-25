@@ -542,7 +542,7 @@ MonoBehaviour:
   SphereRadius: {x: 3, y: 8}
   SpheresMax: 100
   SpherePlacementRadius: 80
-  BloomEffect: {fileID: 0}
+  BloomEffect: {fileID: 963194230}
 --- !u!114 &963194230
 MonoBehaviour:
   m_ObjectHideFlags: 0

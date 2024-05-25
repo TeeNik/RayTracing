@@ -326,7 +326,7 @@ float3 Shade(inout Ray ray)
 
     float skyGradientT = ray.dir.y;
     float3 cc = float3(0,skyGradientT,0);
-    result = lerp(result, float3(1,1,1), fogAddition);
+    //result = lerp(result, float3(.8,0,.8), fogAddition);
     //return float3(fogAddition,fogAddition,fogAddition);
     return result;
 }
