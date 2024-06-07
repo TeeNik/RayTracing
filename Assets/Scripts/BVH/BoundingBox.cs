@@ -8,6 +8,8 @@ public class BVHTriangle
     public Vector3 VertexB;
     public Vector3 VertexC;
 
+    public Vector3 Center;
+
     public BVHTriangle(Vector3 a, Vector3 b, Vector3 c)
     {
         VertexA = a;
@@ -28,11 +30,11 @@ public class BoundingBox
         Max = Vector3.Max(Max, point);
     }
 
-    //public void GrowToInclude(BHVTriangle triangle)
-    //{
-    //    GrowToInclude(triangle.VertexA);
-    //    GrowToInclude(triangle.VertexB);
-    //    GrowToInclude(triangle.VertexC);
-    //}
+    public void GrowToInclude(BVHTriangle triangle)
+    {
+        GrowToInclude(triangle.VertexA);
+        GrowToInclude(triangle.VertexB);
+        GrowToInclude(triangle.VertexC);
+    }
     
 }
