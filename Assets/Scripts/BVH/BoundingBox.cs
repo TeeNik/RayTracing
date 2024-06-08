@@ -8,7 +8,7 @@ public class BVHTriangle
     public Vector3 VertexB;
     public Vector3 VertexC;
 
-    public Vector3 Center;
+    public Vector3 Center => (VertexA + VertexB + VertexC) / 3;
 
     public BVHTriangle(Vector3 a, Vector3 b, Vector3 c)
     {

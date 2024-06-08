@@ -2,11 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
-public class BVHDebugger : MonoBehaviour
+public class BvhDebugger : MonoBehaviour
 {
     public GameObject MeshToDebug;
-    private bool bInited = false;
 
     private void Start()
     {
@@ -27,16 +27,35 @@ public class BVHDebugger : MonoBehaviour
                 vertices[i] = (Vector3)(localToWorld * vertices[i]) + MeshToDebug.transform.position;
             }
 
-            BVH bhv = new BVH(vertices, mesh.GetIndices(0));
-            bInited = true;
+            BVH bvh = new BVH(vertices, mesh.GetIndices(0));
             
+            //Gizmos.color = Color.green;
+            //var bounds = bvh.root.Bounds;
+            //Gizmos.DrawWireCube(bounds.Center, bounds.Max - bounds.Min);
             
+            DrawBvhNode(bvh.root, 0);
             
-            Gizmos.color = Color.green;
-            var bounds = bhv.root.Bounds;
-            Gizmos.DrawWireCube(bounds.Center, bounds.Max - bounds.Min);
             Gizmos.color = Color.red;
             Gizmos.DrawWireMesh(mesh, MeshToDebug.transform.position, MeshToDebug.transform.rotation, MeshToDebug.transform.localScale);
+        }
+    }
+
+    void DrawBvhNode(Node node, int depth)
+    {
+        if (node.ChildA != null)
+        {
+            DrawBvhNode(node.ChildA, depth + 1);
+        }
+        if (node.ChildB != null)
+        {
+            DrawBvhNode(node.ChildB, depth);
+        }
+        if (node.ChildA == null && node.ChildB == null)
+        {
+            Random.InitState(0);
+            Gizmos.color = Random.ColorHSV();
+            var bounds = node.Bounds;
+            Gizmos.DrawWireCube(bounds.Center, bounds.Max - bounds.Min);
         }
     }
 }

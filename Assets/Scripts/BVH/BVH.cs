@@ -24,7 +24,7 @@ public class BVH
 {
 
     public Node root;
-    public int MaxDepth = 1;
+    public int MaxDepth = 2;
     
     public BVH(Vector3[] vertices, int[] indices)
     {
@@ -63,7 +63,11 @@ public class BVH
             bool inA = tri.Center.x < parent.Bounds.Center.x;
             Node child = inA ? parent.ChildA : parent.ChildB;
             child.Triangles.Add(tri);
-            child.Bounds.GrowToInclude(tri);
+            //child.Bounds.GrowToInclude(tri);
+            
+            child.Bounds.GrowToInclude(tri.VertexA);
+            child.Bounds.GrowToInclude(tri.VertexB);
+            child.Bounds.GrowToInclude(tri.VertexC);
         }
         
         Split(parent.ChildA, depth + 1);
