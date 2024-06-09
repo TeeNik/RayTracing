@@ -23,6 +23,7 @@ public class BoundingBox
     public Vector3 Min = Vector3.positiveInfinity;
     public Vector3 Max = Vector3.negativeInfinity;
     public Vector3 Center => (Min + Max) * 0.5f;
+    public Vector3 Size => Max - Min;
 
     public void GrowToInclude(Vector3 point)
     {
