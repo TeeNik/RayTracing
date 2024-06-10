@@ -33,29 +33,26 @@ public class BvhDebugger : MonoBehaviour
             //var bounds = bvh.root.Bounds;
             //Gizmos.DrawWireCube(bounds.Center, bounds.Max - bounds.Min);
             
-            DrawBvhNode(bvh.root, 0);
+            DrawBvhNode(bvh, bvh.root, 0);
             
             Gizmos.color = Color.red;
             Gizmos.DrawWireMesh(mesh, MeshToDebug.transform.position, MeshToDebug.transform.rotation, MeshToDebug.transform.localScale);
         }
     }
 
-    void DrawBvhNode(Node node, int depth)
+    void DrawBvhNode(BVH bvh, Node node, int depth)
     {
-        if (node.ChildA != null)
-        {
-            DrawBvhNode(node.ChildA, depth + 1);
-        }
-        if (node.ChildB != null)
-        {
-            DrawBvhNode(node.ChildB, depth);
-        }
-        if (node.ChildA == null && node.ChildB == null)
+        if (node.ChildIndex == 0)
         {
             Random.InitState(0);
             Gizmos.color = Random.ColorHSV();
             var bounds = node.Bounds;
             Gizmos.DrawWireCube(bounds.Center, bounds.Max - bounds.Min);
+        }
+        else
+        {
+            DrawBvhNode(bvh, bvh.AllNodes[node.ChildIndex + 0], depth + 1);
+            DrawBvhNode(bvh, bvh.AllNodes[node.ChildIndex + 1], depth + 1);
         }
     }
 }

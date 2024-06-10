@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,25 +5,26 @@ public class Node
 {
     public BoundingBox Bounds = new();
     public List<BVHTriangle> Triangles = new();
-    public Node ChildA;
-    public Node ChildB;
+    public int ChildIndex = 0; //second child is always +1
 
-    public Node() {}
-    
+    public Node()
+    {
+    }
+
     public Node(BoundingBox bounds, List<BVHTriangle> triangles)
     {
         Bounds = bounds;
         Triangles = triangles;
     }
-    
 }
 
 public class BVH
 {
+    public List<Node> AllNodes = new();
 
     public Node root;
-    public int MaxDepth = 3;
-    
+    public int MaxDepth = 2;
+
     public BVH(Vector3[] vertices, int[] indices)
     {
         BoundingBox bounds = new BoundingBox();
@@ -45,6 +44,7 @@ public class BVH
         }
 
         root = new Node(bounds, new List<BVHTriangle>(triangles));
+        AllNodes.Add(root);
         Split(root);
     }
 
@@ -55,12 +55,15 @@ public class BVH
             return;
         }
 
-        parent.ChildA = new Node();
-        parent.ChildB = new Node();
+        parent.ChildIndex = AllNodes.Count;
+        Node childA = new Node();
+        Node childB = new Node();
+        AllNodes.Add(childA);
+        AllNodes.Add(childB);
 
         Vector3 size = parent.Bounds.Size;
         Vector3 center = parent.Bounds.Center;
-        
+
         int splitAxis = size.x > Mathf.Max(size.y, size.z) ? 0 : (size.y > size.z ? 1 : 2);
         float splitPos = splitAxis == 0 ? center.x : (splitAxis == 1 ? center.y : center.z);
 
@@ -69,17 +72,16 @@ public class BVH
             float triCenter = splitAxis == 0 ? tri.Center.x : (splitAxis == 1 ? tri.Center.y : tri.Center.z);
 
             bool inA = triCenter < splitPos;
-            Node child = inA ? parent.ChildA : parent.ChildB;
+            Node child = inA ? childA : childB;
             child.Triangles.Add(tri);
             //child.Bounds.GrowToInclude(tri);
-            
+
             child.Bounds.GrowToInclude(tri.VertexA);
             child.Bounds.GrowToInclude(tri.VertexB);
             child.Bounds.GrowToInclude(tri.VertexC);
         }
-        
-        Split(parent.ChildA, depth + 1);
-        Split(parent.ChildB, depth + 1);
-        
+
+        Split(childA, depth + 1);
+        Split(childB, depth + 1);
     }
 }
