@@ -51,8 +51,8 @@ public class BvhDebugger : MonoBehaviour
         }
         else
         {
-            DrawBvhNode(bvh, bvh.AllNodes[node.ChildIndex + 0], depth + 1);
-            DrawBvhNode(bvh, bvh.AllNodes[node.ChildIndex + 1], depth + 1);
+            DrawBvhNode(bvh, bvh.Nodes[node.ChildIndex + 0], depth + 1);
+            DrawBvhNode(bvh, bvh.Nodes[node.ChildIndex + 1], depth + 1);
         }
     }
 }
