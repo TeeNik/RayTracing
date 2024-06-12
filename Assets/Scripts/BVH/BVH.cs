@@ -88,7 +88,7 @@ public class BVH
 
             if (inA)
             {
-                int swap = child.TriangleIndex + childA.TriangleCount - 1;
+                int swap = child.TriangleIndex + child.TriangleCount - 1;
                 (Triangles[i], Triangles[swap]) = (Triangles[swap], Triangles[i]);
                 childB.TriangleIndex++;
             }
