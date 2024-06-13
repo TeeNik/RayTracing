@@ -1,22 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class Node
-{
-    public BoundingBox Bounds = new();
-    public int TriangleIndex;
-    public int TriangleCount;
-    public int ChildIndex = 0; //second child is always +1
 
-    public Node()
-    {
-    }
-
-    public Node(BoundingBox bounds)
-    {
-        Bounds = bounds;
-    }
-}
 
 public class BVH
 {
@@ -96,5 +82,10 @@ public class BVH
 
         Split(childA, depth + 1);
         Split(childB, depth + 1);
+    }
+
+    public List<NodeData> GetNodesForBuffer()
+    {
+        return (List<NodeData>)Nodes.Select(n => new NodeData(n));
     }
 }
