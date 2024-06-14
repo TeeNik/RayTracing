@@ -70,14 +70,16 @@ public class Node
 
 public struct NodeData
 {
-    public BoundingBox Bounds;
+    public Vector3 BoundsMin;
+    public Vector3 BoundsMax;
     public int TriangleIndex;
     public int TriangleCount;
     public int ChildIndex;
 
     public NodeData(Node node)
     {
-        Bounds = node.Bounds;
+        BoundsMin = node.Bounds.Min;
+        BoundsMax = node.Bounds.Max;
         TriangleIndex = node.TriangleIndex;
         TriangleCount = node.TriangleCount;
         ChildIndex = node.ChildIndex;

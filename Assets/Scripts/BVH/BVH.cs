@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 using UnityEngine;
 
 
@@ -7,10 +8,12 @@ using UnityEngine;
 public class BVH
 {
     public readonly List<Node> Nodes = new();
-    public BVHTriangle[] Triangles; 
+    public List<BVHTriangle> Triangles; 
 
     public Node root;
     public int MaxDepth = 2;
+
+    public readonly List<NodeData> NodesForBuffer;
 
     public BVH(Vector3[] vertices, int[] indices)
     {
@@ -21,22 +24,24 @@ public class BVH
             bounds.GrowToInclude(vertex);
         }
 
-        Triangles = new BVHTriangle[indices.Length / 3];
+        Triangles = new List<BVHTriangle>();
         for (int i = 0; i < indices.Length; i += 3)
         {
             Vector3 a = vertices[indices[i + 0]];
             Vector3 b = vertices[indices[i + 1]];
             Vector3 c = vertices[indices[i + 2]];
-            Triangles[i / 3] = new BVHTriangle(a, b, b);
+            Triangles.Add(new BVHTriangle(a, b, b));
         }
 
         root = new Node(bounds);
         //TODO refactor
         root.TriangleIndex = 0;
-        root.TriangleCount = Triangles.Length;
+        root.TriangleCount = Triangles.Count;
         
         Nodes.Add(root);
         Split(root);
+
+        NodesForBuffer = Nodes.Select(n => new NodeData(n)).ToList();
     }
 
     public void Split(Node parent, int depth = 0)
@@ -82,10 +87,5 @@ public class BVH
 
         Split(childA, depth + 1);
         Split(childB, depth + 1);
-    }
-
-    public List<NodeData> GetNodesForBuffer()
-    {
-        return (List<NodeData>)Nodes.Select(n => new NodeData(n));
     }
 }
