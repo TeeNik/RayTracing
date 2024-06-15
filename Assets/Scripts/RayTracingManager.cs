@@ -56,12 +56,17 @@ public class RayTracingManager : MonoBehaviour
     private static List<MeshInfo> _meshObjects = new List<MeshInfo>();
     private static List<Vector3> _vertices = new List<Vector3>();
     private static List<int> _indices = new List<int>();
+    
     private ComputeBuffer _meshObjectBuffer;
     private ComputeBuffer _vertexBuffer;
     private ComputeBuffer _indexBuffer;
 
     private static List<Vector2> _uvs = new List<Vector2>();
     private ComputeBuffer _uvBuffer;
+    
+    private ComputeBuffer _nodesBuffer;
+    private ComputeBuffer _trianglesBuffer;
+
 
     private void Awake()
     {
@@ -82,6 +87,9 @@ public class RayTracingManager : MonoBehaviour
         _indexBuffer?.Release();
         
         _uvBuffer?.Release();
+        
+        _nodesBuffer.Release();
+        _trianglesBuffer.Release();
     }
 
     private void SetUpScene()
@@ -187,6 +195,9 @@ public class RayTracingManager : MonoBehaviour
         SetComputeBuffer("_MeshObjects", _meshObjectBuffer);
         SetComputeBuffer("_Vertices", _vertexBuffer);
         SetComputeBuffer("_Indices", _indexBuffer);
+        
+        SetComputeBuffer("_Nodes", _nodesBuffer);
+        SetComputeBuffer("_Triangles", _trianglesBuffer);
         
         SetComputeBuffer("_Uvs", _uvBuffer);
     }
@@ -303,6 +314,16 @@ public class RayTracingManager : MonoBehaviour
                 boundMin = boundMin,
                 boundMax = boundMax
             });
+        }
+
+        if (_rayTracingObjects.Count > 0)
+        {
+            var obj = _rayTracingObjects[0];
+            Mesh mesh = obj.GetComponent<MeshFilter>().sharedMesh;
+            BVH bvh = new BVH(mesh.vertices, mesh.triangles);
+            
+            ShaderUtils.CreateComputeBuffer(ref _nodesBuffer, bvh.NodesForBuffer);
+            ShaderUtils.CreateComputeBuffer(ref _trianglesBuffer, bvh.Triangles);
         }
 
         ShaderUtils.CreateComputeBuffer(ref _meshObjectBuffer, _meshObjects);
