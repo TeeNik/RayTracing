@@ -320,7 +320,15 @@ public class RayTracingManager : MonoBehaviour
         {
             var obj = _rayTracingObjects[0];
             Mesh mesh = obj.GetComponent<MeshFilter>().sharedMesh;
-            BVH bvh = new BVH(mesh.vertices, mesh.triangles);
+            
+            var localToWorld = obj.transform.localToWorldMatrix;
+            var vertices = mesh.vertices;
+            for (var i = 0; i < vertices.Length; i++)
+            {
+                vertices[i] = (Vector3)(localToWorld * vertices[i]) + obj.transform.position;
+            }
+            
+            BVH bvh = new BVH(vertices, mesh.triangles);
             
             ShaderUtils.CreateComputeBuffer(ref _nodesBuffer, bvh.NodesForBuffer);
             ShaderUtils.CreateComputeBuffer(ref _trianglesBuffer, bvh.Triangles);
