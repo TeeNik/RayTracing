@@ -87,3 +87,19 @@ RayHit CreateRayHit()
     hit.uv = float2(0,0);
     return hit;
 }
+
+struct BVHNode
+{
+    float3 BoundsMin;
+    float3 BoundsMax;
+    int TriangleIndex;
+    int TriangleCount;
+    int ChildIndex;
+};
+
+struct BVHTriangle
+{
+    float3 VertexA;
+    float3 VertexB;
+    float3 VertexC;
+};

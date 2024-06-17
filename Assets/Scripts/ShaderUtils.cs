@@ -31,7 +31,7 @@ public static class ShaderUtils
         {
             if (buffer == null)
             {
-                buffer = new ComputeBuffer(data.Count, stride);
+                buffer = new ComputeBuffer(data.Count, stride, ComputeBufferType.Structured);
             }
             buffer.SetData(data);
         }

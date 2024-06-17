@@ -27,6 +27,9 @@ StructuredBuffer<MeshObject> _MeshObjects;
 StructuredBuffer<float3> _Vertices;
 StructuredBuffer<int> _Indices;
 
+StructuredBuffer<BVHNode> _Nodes;
+StructuredBuffer<BVHTriangle> _Triangles;
+
 StructuredBuffer<float2> _Uvs;
 Texture2D<float4> _CubeTexture;
 SamplerState sampler_CubeTexture;
