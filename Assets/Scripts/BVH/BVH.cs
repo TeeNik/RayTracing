@@ -8,12 +8,13 @@ using UnityEngine;
 public class BVH
 {
     public readonly List<Node> Nodes = new();
-    public List<BVHTriangle> Triangles; 
+    public List<Triangle> Triangles; 
 
     public Node root;
-    public int MaxDepth = 2;
+    public int MaxDepth = 0;
 
     public readonly List<NodeData> NodesForBuffer;
+    public readonly List<TriangleData> TrianglesForBuffer;
 
     public BVH(Vector3[] vertices, int[] indices)
     {
@@ -24,13 +25,13 @@ public class BVH
             bounds.GrowToInclude(vertex);
         }
 
-        Triangles = new List<BVHTriangle>();
+        Triangles = new List<Triangle>();
         for (int i = 0; i < indices.Length; i += 3)
         {
             Vector3 a = vertices[indices[i + 0]];
             Vector3 b = vertices[indices[i + 1]];
             Vector3 c = vertices[indices[i + 2]];
-            Triangles.Add(new BVHTriangle(a, b, b));
+            Triangles.Add(new Triangle(a, b, c));
         }
 
         root = new Node(bounds);
@@ -42,6 +43,7 @@ public class BVH
         Split(root);
 
         NodesForBuffer = Nodes.Select(n => new NodeData(n)).ToList();
+        TrianglesForBuffer = Triangles.Select(t => new TriangleData(t)).ToList();
     }
 
     public void Split(Node parent, int depth = 0)

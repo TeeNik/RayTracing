@@ -331,7 +331,7 @@ public class RayTracingManager : MonoBehaviour
             BVH bvh = new BVH(vertices, mesh.triangles);
             
             ShaderUtils.CreateComputeBuffer(ref _nodesBuffer, bvh.NodesForBuffer);
-            ShaderUtils.CreateComputeBuffer(ref _trianglesBuffer, bvh.Triangles);
+            ShaderUtils.CreateComputeBuffer(ref _trianglesBuffer, bvh.TrianglesForBuffer);
         }
 
         ShaderUtils.CreateComputeBuffer(ref _meshObjectBuffer, _meshObjects);
