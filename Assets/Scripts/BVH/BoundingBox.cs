@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public struct BVHTriangle
+public struct Triangle
 {
     public Vector3 VertexA;
     public Vector3 VertexB;
@@ -10,11 +10,25 @@ public struct BVHTriangle
 
     public Vector3 Center => (VertexA + VertexB + VertexC) / 3;
 
-    public BVHTriangle(Vector3 a, Vector3 b, Vector3 c)
+    public Triangle(Vector3 a, Vector3 b, Vector3 c)
     {
         VertexA = a;
         VertexB = b;
         VertexC = c;
+    }
+}
+
+public struct TriangleData
+{
+    public Vector3 VertexA;
+    public Vector3 VertexB;
+    public Vector3 VertexC;
+
+    public TriangleData(Triangle Tri)
+    {
+        VertexA = Tri.VertexA;
+        VertexB = Tri.VertexB;
+        VertexC = Tri.VertexC;
     }
 }
 
@@ -43,7 +57,7 @@ public class BoundingBox
         Max = Vector3.Max(Max, point);
     }
 
-    public void GrowToInclude(BVHTriangle triangle)
+    public void GrowToInclude(Triangle triangle)
     {
         GrowToInclude(triangle.VertexA);
         GrowToInclude(triangle.VertexB);
