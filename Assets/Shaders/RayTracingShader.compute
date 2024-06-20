@@ -201,6 +201,45 @@ void IntersectMeshObject(Ray ray, inout RayHit hit, MeshObject mesh)
     }
 }
 
+void IntersectMeshObjectBVH(Ray ray, inout RayHit hit, MeshObject mesh)
+{
+    BVHNode nodeStack[1];
+    int stackIndex = 0;
+    nodeStack[stackIndex++] = _Nodes[0];
+
+    while (stackIndex > 0)
+    {
+        BVHNode node = nodeStack[--stackIndex];
+        if (IntersectAABB(ray, node.BoundsMin, node.BoundsMax))
+        {
+            if (node.ChildIndex == 0)
+            {
+                for (int i = node.TriangleIndex; i < node.TriangleIndex + node.TriangleCount; i++)
+                {
+                    BVHTriangle tri = _Triangles[i];
+                    float t, u, v;
+                    if (IntersectTriangle_MT97(ray, tri.VertexA, tri.VertexB, tri.VertexC, t, u, v))
+                    {
+                        if (t > 0 && t < hit.dist)
+                        {
+                            hit.dist = t;
+                            hit.pos = ray.origin + t * ray.dir;
+                            hit.normal = normalize(cross(tri.VertexB - tri.VertexA, tri.VertexC - tri.VertexA));
+                            hit.material = mesh.material;
+                            //hit.uv = u * _Uvs[_Indices[i]] + v * _Uvs[_Indices[i + 1]] + (1 - u - v) * _Uvs[_Indices[i + 2]];
+                        }
+                    }
+                }
+            }
+            else
+            {
+                nodeStack[stackIndex++] = _Nodes[node.ChildIndex + 1];
+                nodeStack[stackIndex++] = _Nodes[node.ChildIndex + 0];
+            }
+        }
+    }
+}
+
 float2 mod2(float2 x, float2 y)
 {
     return x - y * floor(x / y);
@@ -243,6 +282,8 @@ RayHit Trace(Ray ray)
     {
         IntersectSphere(ray, hit, _Spheres[i]);
     }
+
+    //IntersectMeshObjectBVH(ray, hit, _MeshObjects[0]);
 
     _MeshObjects.GetDimensions(count, stride);
     for (uint i = 0; i < count; ++i)
