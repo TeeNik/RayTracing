@@ -130,7 +130,8 @@ void IntersectSphere(Ray ray, inout RayHit hit, Sphere sphere)
     }
 }
 
-bool IntersectAABB(Ray ray, float3 boxMin, float3 boxMax) {
+bool IntersectAABB(Ray ray, float3 boxMin, float3 boxMax)
+{
     float3 tMin = (boxMin - ray.origin) / ray.dir;
     float3 tMax = (boxMax - ray.origin) / ray.dir;
     float3 t1 = min(tMin, tMax);
@@ -138,6 +139,19 @@ bool IntersectAABB(Ray ray, float3 boxMin, float3 boxMax) {
     float tNear = max(max(t1.x, t1.y), t1.z);
     float tFar = min(min(t2.x, t2.y), t2.z);
     return tNear <= tFar;
+};
+
+float IntersectAABBDist(Ray ray, float3 boxMin, float3 boxMax)
+{
+    float3 tMin = (boxMin - ray.origin) / ray.dir;
+    float3 tMax = (boxMax - ray.origin) / ray.dir;
+    float3 t1 = min(tMin, tMax);
+    float3 t2 = max(tMin, tMax);
+    float tNear = max(max(t1.x, t1.y), t1.z);
+    float tFar = min(min(t2.x, t2.y), t2.z);
+
+    bool hit = tFar >= tNear && tFar > 0;
+    return hit ? tNear : 1.#INF;
 };
 
 bool IntersectTriangle_MT97(Ray ray, float3 vert0, float3 vert1, float3 vert2,
