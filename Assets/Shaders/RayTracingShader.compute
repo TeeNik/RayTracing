@@ -130,7 +130,7 @@ void IntersectSphere(Ray ray, inout RayHit hit, Sphere sphere)
     }
 }
 
-bool IntersectAABB(Ray ray, float3 boxMin, float3 boxMax)
+bool IntersectBox(Ray ray, float3 boxMin, float3 boxMax)
 {
     float3 tMin = (boxMin - ray.origin) / ray.dir;
     float3 tMax = (boxMax - ray.origin) / ray.dir;
@@ -141,7 +141,7 @@ bool IntersectAABB(Ray ray, float3 boxMin, float3 boxMax)
     return tNear <= tFar;
 };
 
-float IntersectAABBDist(Ray ray, float3 boxMin, float3 boxMax)
+float IntersectBoxDist(Ray ray, float3 boxMin, float3 boxMax)
 {
     float3 tMin = (boxMin - ray.origin) / ray.dir;
     float3 tMax = (boxMax - ray.origin) / ray.dir;
@@ -188,7 +188,7 @@ bool IntersectTriangle_MT97(Ray ray, float3 vert0, float3 vert1, float3 vert2,
 
 void IntersectMeshObject(Ray ray, inout RayHit hit, MeshObject mesh)
 {
-    if (IntersectAABB(ray, mesh.boundMin, mesh.boundMax))
+    if (IntersectBox(ray, mesh.boundMin, mesh.boundMax))
     {
         uint offset = mesh.indicesOffset;
         uint count = offset + mesh.indicesCount;
@@ -217,14 +217,14 @@ void IntersectMeshObject(Ray ray, inout RayHit hit, MeshObject mesh)
 
 void IntersectMeshObjectBVH(Ray ray, inout RayHit hit, MeshObject mesh)
 {
-    BVHNode nodeStack[1];
+    BVHNode nodeStack[11];
     int stackIndex = 0;
     nodeStack[stackIndex++] = _Nodes[0];
 
     while (stackIndex > 0)
     {
         BVHNode node = nodeStack[--stackIndex];
-        if (IntersectAABB(ray, node.BoundsMin, node.BoundsMax))
+        if (IntersectBox(ray, node.BoundsMin, node.BoundsMax))
         {
             if (node.ChildIndex == 0)
             {

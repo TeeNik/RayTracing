@@ -11,7 +11,7 @@ public class BVH
     public List<Triangle> Triangles; 
 
     public Node root;
-    public int MaxDepth = 0;
+    public int MaxDepth = 10;
 
     public readonly List<NodeData> NodesForBuffer;
     public readonly List<TriangleData> TrianglesForBuffer;
