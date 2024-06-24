@@ -224,7 +224,7 @@ void IntersectMeshObjectBVH(Ray ray, inout RayHit hit, MeshObject mesh)
     while (stackIndex > 0)
     {
         BVHNode node = nodeStack[--stackIndex];
-        if (IntersectBox(ray, node.BoundsMin, node.BoundsMax))
+        //if (IntersectBoxDist(ray, node.BoundsMin, node.BoundsMax) < hit.dist)
         {
             if (node.ChildIndex == 0)
             {
@@ -247,8 +247,23 @@ void IntersectMeshObjectBVH(Ray ray, inout RayHit hit, MeshObject mesh)
             }
             else
             {
-                nodeStack[stackIndex++] = _Nodes[node.ChildIndex + 1];
-                nodeStack[stackIndex++] = _Nodes[node.ChildIndex + 0];
+                BVHNode childA = _Nodes[node.ChildIndex + 0];
+                BVHNode childB = _Nodes[node.ChildIndex + 1];
+
+                float distA = IntersectBoxDist(ray, childA.BoundsMin, childA.BoundsMax);
+                float distB = IntersectBoxDist(ray, childB.BoundsMin, childB.BoundsMax);
+                //stats[0] += 2;
+
+                if (distA > distB)
+                {
+                    if (distA < hit.dist) nodeStack[stackIndex++] = childA;
+                    if (distB < hit.dist) nodeStack[stackIndex++] = childB;
+                }
+                else
+                {
+                    if (distB < hit.dist) nodeStack[stackIndex++] = childB;
+                    if (distA < hit.dist) nodeStack[stackIndex++] = childA;
+                }
             }
         }
     }
