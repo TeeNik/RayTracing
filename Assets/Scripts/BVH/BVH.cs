@@ -44,6 +44,68 @@ public class BVH
 
         NodesForBuffer = Nodes.Select(n => new NodeData(n)).ToList();
         TrianglesForBuffer = Triangles.Select(t => new TriangleData(t)).ToList();
+        
+        Nodes.Clear();
+        Triangles.Clear();
+    }
+
+    public float NodeCost(Vector3 size, int numOfTriangles)
+    {
+        float halfSurface = size.x * size.y + size.x * size.z + size.y * size.z;
+        return halfSurface * numOfTriangles;
+    }
+
+    void ChooseSplit(Node node, out int axis, out float pos, out float cost)
+    {
+        const int TestsPerAxis = 5;
+        cost = float.MaxValue;
+        pos = 0.0f;
+        axis = 0;
+
+        for (int testAxis = 0; testAxis < 3; ++testAxis)
+        {
+            float boundStart = node.Bounds.Min[testAxis];
+            float boundEnd = node.Bounds.Max[testAxis];
+
+            for (int i = 0; i < TestsPerAxis; ++i)
+            {
+                float split = (float)(i + 1) / (TestsPerAxis + 1);
+                float testPos = boundStart + (boundEnd - boundStart) * split;
+                float testCost = EValuateSplit(node, axis, testPos);
+
+                if (testCost < cost)
+                {
+                    cost = testCost;
+                    pos = testPos;
+                    axis = testAxis;
+                }
+            }
+        }
+    }
+
+    float EValuateSplit(Node node, int axis, float pos)
+    {
+        BoundingBox boundsA = new BoundingBox();
+        BoundingBox boundsB = new BoundingBox();
+        int triesInA = 0;
+        int triesInB = 0;
+
+        for (int i = node.TriangleIndex; i < node.TriangleIndex + node.TriangleCount; ++i)
+        {
+            Triangle tri = Triangles[i];
+            if (tri.Center[axis] < pos)
+            {
+                boundsA.GrowToInclude(tri);
+                ++triesInA;
+            }
+            else
+            {
+                boundsB.GrowToInclude(tri);
+                ++triesInB;
+            }
+        }
+        
+        return NodeCost(boundsA.Size, triesInA) + NodeCost(boundsB.Size, triesInB);
     }
 
     public void Split(Node parent, int depth = 0)
