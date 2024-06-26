@@ -11,7 +11,7 @@ public class BVH
     public List<Triangle> Triangles; 
 
     public Node root;
-    public int MaxDepth = 10;
+    public int MaxDepth = 20;
 
     public readonly List<NodeData> NodesForBuffer;
     public readonly List<TriangleData> TrianglesForBuffer;
@@ -115,31 +115,26 @@ public class BVH
             return;
         }
 
+        int splitAxis;
+        float splitPos, cost;
+        ChooseSplit(parent, out splitAxis, out splitPos, out cost);
+        if (cost >= NodeCost(parent.Bounds.Size, parent.TriangleCount))
+        {
+            return;
+        }
+
         parent.ChildIndex = Nodes.Count;
         Node childA = new Node() {TriangleIndex = parent.TriangleIndex};
         Node childB = new Node() {TriangleIndex = parent.TriangleIndex};
         Nodes.Add(childA);
         Nodes.Add(childB);
 
-        Vector3 size = parent.Bounds.Size;
-        Vector3 center = parent.Bounds.Center;
-
-        int splitAxis = size.x > Mathf.Max(size.y, size.z) ? 0 : (size.y > size.z ? 1 : 2);
-        float splitPos = splitAxis == 0 ? center.x : (splitAxis == 1 ? center.y : center.z);
-
         for (int i = parent.TriangleIndex; i < parent.TriangleIndex + parent.TriangleCount; ++i)
         {
-            var tri = Triangles[i];
-            float triCenter = splitAxis == 0 ? tri.Center.x : (splitAxis == 1 ? tri.Center.y : tri.Center.z);
-
-            bool inA = triCenter < splitPos;
+            bool inA = Triangles[i].Center[splitAxis] < splitPos;
             Node child = inA ? childA : childB;
+            child.Bounds.GrowToInclude(Triangles[i]);
             child.TriangleCount++;
-            //child.Bounds.GrowToInclude(tri);
-
-            child.Bounds.GrowToInclude(tri.VertexA);
-            child.Bounds.GrowToInclude(tri.VertexB);
-            child.Bounds.GrowToInclude(tri.VertexC);
 
             if (inA)
             {
