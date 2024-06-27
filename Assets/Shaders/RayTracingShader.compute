@@ -217,13 +217,16 @@ void IntersectMeshObject(Ray ray, inout RayHit hit, MeshObject mesh)
 
 void IntersectMeshObjectBVH(Ray ray, inout RayHit hit, MeshObject mesh)
 {
-    BVHNode nodeStack[11];
+    const int StackSize = 21;
+    int nodeStack[StackSize];
     int stackIndex = 0;
-    nodeStack[stackIndex++] = _Nodes[0];
+    nodeStack[stackIndex++] = 0;
 
     while (stackIndex > 0)
     {
-        BVHNode node = nodeStack[--stackIndex];
+        int nodeIndex = nodeStack[--stackIndex];
+        BVHNode node = _Nodes[nodeIndex];
+        
         //if (IntersectBoxDist(ray, node.BoundsMin, node.BoundsMax) < hit.dist)
         {
             if (node.ChildIndex == 0)
@@ -247,23 +250,27 @@ void IntersectMeshObjectBVH(Ray ray, inout RayHit hit, MeshObject mesh)
             }
             else
             {
-                BVHNode childA = _Nodes[node.ChildIndex + 0];
-                BVHNode childB = _Nodes[node.ChildIndex + 1];
+                //nodeStack[stackIndex++] = _Nodes[node.ChildIndex + 1];
+                //nodeStack[stackIndex++] = _Nodes[node.ChildIndex + 0];
+
+                int childIndexA = node.ChildIndex + 0;
+                int childIndexB = node.ChildIndex + 1;
+                
+                BVHNode childA = _Nodes[childIndexA];
+                BVHNode childB = _Nodes[childIndexB];
 
                 float distA = IntersectBoxDist(ray, childA.BoundsMin, childA.BoundsMax);
                 float distB = IntersectBoxDist(ray, childB.BoundsMin, childB.BoundsMax);
                 //stats[0] += 2;
 
-                if (distA > distB)
-                {
-                    if (distA < hit.dist) nodeStack[stackIndex++] = childA;
-                    if (distB < hit.dist) nodeStack[stackIndex++] = childB;
-                }
-                else
-                {
-                    if (distB < hit.dist) nodeStack[stackIndex++] = childB;
-                    if (distA < hit.dist) nodeStack[stackIndex++] = childA;
-                }
+                bool isNearA = distA < distB;
+                float distNear = isNearA ? distA : distB;
+                float distFar = isNearA ? distB : distA;
+                int childIndexNear = isNearA ? childIndexA : childIndexB;
+                int childIndexFar = isNearA ? childIndexB : childIndexA;
+
+                if (distFar < hit.dist) nodeStack[stackIndex++] = childIndexFar;
+                if (distNear < hit.dist) nodeStack[stackIndex++] = childIndexNear;
             }
         }
     }
