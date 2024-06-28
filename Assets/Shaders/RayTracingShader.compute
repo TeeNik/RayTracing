@@ -319,12 +319,12 @@ RayHit Trace(Ray ray)
         IntersectSphere(ray, hit, _Spheres[i]);
     }
 
-    //IntersectMeshObjectBVH(ray, hit, _MeshObjects[0]);
+    IntersectMeshObjectBVH(ray, hit, _MeshObjects[0]);
 
     _MeshObjects.GetDimensions(count, stride);
     for (uint i = 0; i < count; ++i)
     {
-        IntersectMeshObject(ray, hit, _MeshObjects[i]);
+        //IntersectMeshObject(ray, hit, _MeshObjects[i]);
     }
 
     return hit;
