@@ -71,7 +71,7 @@ public class BVH
             {
                 float split = (float)(i + 1) / (TestsPerAxis + 1);
                 float testPos = boundStart + (boundEnd - boundStart) * split;
-                float testCost = EValuateSplit(node, axis, testPos);
+                float testCost = EValuateSplit(node, testAxis, testPos);
 
                 if (testCost < cost)
                 {
