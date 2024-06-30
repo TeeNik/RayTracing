@@ -44,9 +44,29 @@ public class BVH
 
         NodesForBuffer = Nodes.Select(n => new NodeData(n)).ToList();
         TrianglesForBuffer = Triangles.Select(t => new TriangleData(t)).ToList();
+
+        int maxTriesInNode = int.MinValue;
+        TraverseNodes(root, ref maxTriesInNode);
+        Debug.Log($"MaxTriesInNode: {maxTriesInNode}");
         
         Nodes.Clear();
         Triangles.Clear();
+    }
+
+    void TraverseNodes(Node node, ref int maxTriesInNode)
+    {
+        if (node.ChildIndex == 0)
+        {
+            if (node.TriangleCount > maxTriesInNode)
+            {
+                maxTriesInNode = node.TriangleCount;
+            }
+        }
+        else
+        {
+            TraverseNodes(Nodes[node.ChildIndex + 0], ref maxTriesInNode);
+            TraverseNodes(Nodes[node.ChildIndex + 1], ref maxTriesInNode);
+        }
     }
 
     public float NodeCost(Vector3 size, int numOfTriangles)
@@ -128,6 +148,11 @@ public class BVH
         Node childB = new Node() {TriangleIndex = parent.TriangleIndex};
         Nodes.Add(childA);
         Nodes.Add(childB);
+       
+        //Vector3 size = parent.Bounds.Size;
+        //Vector3 center = parent.Bounds.Center;
+        //int splitAxis = size.x > Mathf.Max(size.y, size.z) ? 0 : (size.y > size.z ? 1 : 2);
+        //float splitPos = splitAxis == 0 ? center.x : (splitAxis == 1 ? center.y : center.z);
 
         for (int i = parent.TriangleIndex; i < parent.TriangleIndex + parent.TriangleCount; ++i)
         {
