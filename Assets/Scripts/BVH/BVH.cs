@@ -18,6 +18,9 @@ public class BVH
 
     public BVH(Vector3[] vertices, int[] indices)
     {
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
+        
         BoundingBox bounds = new BoundingBox();
 
         foreach (var vertex in vertices)
@@ -44,10 +47,12 @@ public class BVH
 
         NodesForBuffer = Nodes.Select(n => new NodeData(n)).ToList();
         TrianglesForBuffer = Triangles.Select(t => new TriangleData(t)).ToList();
+        
+        sw.Stop();
 
         int maxTriesInNode = int.MinValue;
         TraverseNodes(root, ref maxTriesInNode);
-        Debug.Log($"MaxTriesInNode: {maxTriesInNode}");
+        Debug.Log($"MaxTriesInNode: {maxTriesInNode} Construction Time: {sw.ElapsedMilliseconds} ms");
         
         Nodes.Clear();
         Triangles.Clear();
