@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
-
+using Debug = UnityEngine.Debug;
 
 
 public class BVH
@@ -23,18 +24,15 @@ public class BVH
         
         BoundingBox bounds = new BoundingBox();
 
-        foreach (var vertex in vertices)
-        {
-            bounds.GrowToInclude(vertex);
-        }
-
         Triangles = new List<Triangle>();
         for (int i = 0; i < indices.Length; i += 3)
         {
             Vector3 a = vertices[indices[i + 0]];
             Vector3 b = vertices[indices[i + 1]];
             Vector3 c = vertices[indices[i + 2]];
-            Triangles.Add(new Triangle(a, b, c));
+            Triangle tri = new Triangle(a, b, c);
+            Triangles.Add(tri);
+            bounds.GrowToInclude(tri);
         }
 
         root = new Node(bounds);
@@ -54,8 +52,8 @@ public class BVH
         TraverseNodes(root, ref maxTriesInNode);
         Debug.Log($"MaxTriesInNode: {maxTriesInNode} Construction Time: {sw.ElapsedMilliseconds} ms");
         
-        Nodes.Clear();
-        Triangles.Clear();
+        //Nodes.Clear();
+        //Triangles.Clear();
     }
 
     void TraverseNodes(Node node, ref int maxTriesInNode)

@@ -8,13 +8,19 @@ public struct Triangle
     public Vector3 VertexB;
     public Vector3 VertexC;
 
-    public Vector3 Center => (VertexA + VertexB + VertexC) / 3;
-
+    public Vector3 Min;
+    public Vector3 Max;
+    public Vector3 Center;
+        
     public Triangle(Vector3 a, Vector3 b, Vector3 c)
     {
         VertexA = a;
         VertexB = b;
         VertexC = c;
+        
+        Min = Vector3.Min(Vector3.Min(VertexA, VertexB), VertexC);
+        Max = Vector3.Max(Vector3.Max(VertexA, VertexB), VertexC);
+        Center = (VertexA + VertexB + VertexC) / 3;
     }
 }
 
@@ -59,9 +65,13 @@ public class BoundingBox
 
     public void GrowToInclude(Triangle triangle)
     {
-        GrowToInclude(triangle.VertexA);
-        GrowToInclude(triangle.VertexB);
-        GrowToInclude(triangle.VertexC);
+        Min.x = triangle.Min.x < Min.x ? triangle.Min.x : Min.x;
+        Min.y = triangle.Min.y < Min.y ? triangle.Min.y : Min.y;
+        Min.z = triangle.Min.z < Min.z ? triangle.Min.z : Min.z;
+        
+        Max.x = triangle.Max.x > Max.x ? triangle.Max.x : Max.x;
+        Max.y = triangle.Max.y > Max.y ? triangle.Max.y : Max.y;
+        Max.z = triangle.Max.z > Max.z ? triangle.Max.z : Max.z;
     }
 }
 
