@@ -23,6 +23,7 @@ struct Sphere
 struct MeshObject
 {
     float4x4 localToWorldMatrix;
+    float4x4 worldToLocalMatrix;
     int indicesOffset;
     int indicesCount;
     Material material;

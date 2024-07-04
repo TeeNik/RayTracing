@@ -46,6 +46,7 @@ public class RayTracingManager : MonoBehaviour
     struct MeshInfo
     {
         public Matrix4x4 localToWorldMatrix;
+        public Matrix4x4 worldToLocalMatrix;
         public int indicesOffset;
         public int indicesCount;
         public RayTracingMaterial material;
@@ -308,6 +309,7 @@ public class RayTracingManager : MonoBehaviour
             _meshObjects.Add(new MeshInfo()
             {
                 localToWorldMatrix = obj.transform.localToWorldMatrix,
+                worldToLocalMatrix = obj.transform.worldToLocalMatrix,
                 indicesOffset = firstIndex,
                 indicesCount = indices.Length,
                 material = obj.Material.GetMaterialForShader(),
@@ -323,10 +325,10 @@ public class RayTracingManager : MonoBehaviour
             
             var localToWorld = obj.transform.localToWorldMatrix;
             var vertices = mesh.vertices;
-            for (var i = 0; i < vertices.Length; i++)
-            {
-                vertices[i] = (Vector3)(localToWorld * vertices[i]) + obj.transform.position;
-            }
+            //for (var i = 0; i < vertices.Length; i++)
+            //{
+            //    vertices[i] = (Vector3)(localToWorld * vertices[i]) + obj.transform.position;
+            //}
             
             BVH bvh = new BVH(vertices, mesh.triangles);
             
