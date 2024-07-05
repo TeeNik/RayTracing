@@ -241,7 +241,10 @@ void IntersectMeshObjectBVH(Ray ray, inout RayHit hit, MeshObject mesh)
                         {
                             hit.dist = t;
                             hit.pos = ray.origin + t * ray.dir;
-                            hit.normal = normalize(cross(tri.VertexB - tri.VertexA, tri.VertexC - tri.VertexA));
+
+                            float3 normal = cross(tri.VertexB - tri.VertexA, tri.VertexC - tri.VertexA);
+                            hit.normal = normalize(mul(mesh.localToWorldMatrix, float4(normal, 0)));
+                            
                             hit.material = mesh.material;
                             //hit.uv = u * _Uvs[_Indices[i]] + v * _Uvs[_Indices[i + 1]] + (1 - u - v) * _Uvs[_Indices[i + 2]];
                         }
