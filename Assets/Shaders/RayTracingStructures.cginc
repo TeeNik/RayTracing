@@ -24,11 +24,9 @@ struct MeshObject
 {
     float4x4 localToWorldMatrix;
     float4x4 worldToLocalMatrix;
-    int indicesOffset;
-    int indicesCount;
+    int nodeOffset;
+    int triangleOffset;
     Material material;
-    float3 boundMin;
-    float3 boundMax;
 };
 
 struct Ray

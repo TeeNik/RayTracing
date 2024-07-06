@@ -47,11 +47,9 @@ public class RayTracingManager : MonoBehaviour
     {
         public Matrix4x4 localToWorldMatrix;
         public Matrix4x4 worldToLocalMatrix;
-        public int indicesOffset;
-        public int indicesCount;
+        public int nodeOffset;
+        public int triangleOffset;
         public RayTracingMaterial material;
-        public Vector3 boundMin;
-        public Vector3 boundMax;
     }
 
     private static List<MeshInfo> _meshObjects = new List<MeshInfo>();
@@ -287,6 +285,9 @@ public class RayTracingManager : MonoBehaviour
         
         _uvs.Clear();
 
+        List<NodeData> AllNodes = new();
+        List<TriangleData> AllTriangles = new();
+
         foreach (RayTracingObject obj in _rayTracingObjects)
         {
             Mesh mesh = obj.GetComponent<MeshFilter>().sharedMesh;
@@ -301,39 +302,19 @@ public class RayTracingManager : MonoBehaviour
             var uvs = mesh.uv.Length > 0 ? mesh.uv : new Vector2[_vertices.Count];
             _uvs.AddRange(uvs);
             
-            MeshRenderer meshRenderer = obj.GetComponent<MeshRenderer>();
-            var bounds = meshRenderer.bounds;
-            Vector3 boundMin = new Vector3(bounds.min.x, bounds.min.y, bounds.min.z);
-            Vector3 boundMax = new Vector3(bounds.max.x, bounds.max.y, bounds.max.z);
-
+            BVH bvh = new BVH(mesh.vertices, mesh.triangles);
+            
             _meshObjects.Add(new MeshInfo()
             {
                 localToWorldMatrix = obj.transform.localToWorldMatrix,
                 worldToLocalMatrix = obj.transform.worldToLocalMatrix,
-                indicesOffset = firstIndex,
-                indicesCount = indices.Length,
+                nodeOffset = AllNodes.Count,
+                triangleOffset = AllTriangles.Count,
                 material = obj.Material.GetMaterialForShader(),
-                boundMin = boundMin,
-                boundMax = boundMax
             });
-        }
-
-        if (_rayTracingObjects.Count > 0)
-        {
-            var obj = _rayTracingObjects[0];
-            Mesh mesh = obj.GetComponent<MeshFilter>().sharedMesh;
             
-            var localToWorld = obj.transform.localToWorldMatrix;
-            var vertices = mesh.vertices;
-            //for (var i = 0; i < vertices.Length; i++)
-            //{
-            //    vertices[i] = (Vector3)(localToWorld * vertices[i]) + obj.transform.position;
-            //}
-            
-            BVH bvh = new BVH(vertices, mesh.triangles);
-            
-            ShaderUtils.CreateComputeBuffer(ref _nodesBuffer, bvh.NodesForBuffer);
-            ShaderUtils.CreateComputeBuffer(ref _trianglesBuffer, bvh.TrianglesForBuffer);
+            AllNodes.AddRange(bvh.NodesForBuffer);
+            AllTriangles.AddRange(bvh.TrianglesForBuffer);
         }
 
         ShaderUtils.CreateComputeBuffer(ref _meshObjectBuffer, _meshObjects);
@@ -341,6 +322,9 @@ public class RayTracingManager : MonoBehaviour
         ShaderUtils.CreateComputeBuffer(ref _indexBuffer, _indices);
         
         ShaderUtils.CreateComputeBuffer(ref _uvBuffer, _uvs);
+        
+        ShaderUtils.CreateComputeBuffer(ref _nodesBuffer, AllNodes);
+        ShaderUtils.CreateComputeBuffer(ref _trianglesBuffer, AllTriangles);
     }
 
     private void SetComputeBuffer(string name, ComputeBuffer buffer)

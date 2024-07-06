@@ -186,41 +186,12 @@ bool IntersectTriangle_MT97(Ray ray, float3 vert0, float3 vert1, float3 vert2,
     return true;
 }
 
-void IntersectMeshObject(Ray ray, inout RayHit hit, MeshObject mesh)
-{
-    if (IntersectBox(ray, mesh.boundMin, mesh.boundMax))
-    {
-        uint offset = mesh.indicesOffset;
-        uint count = offset + mesh.indicesCount;
-        for (uint i = offset; i < count; i += 3)
-        {
-            float3 v0 = (mul(mesh.localToWorldMatrix, float4(_Vertices[_Indices[i]], 1))).xyz;
-            float3 v1 = (mul(mesh.localToWorldMatrix, float4(_Vertices[_Indices[i + 1]], 1))).xyz;
-            float3 v2 = (mul(mesh.localToWorldMatrix, float4(_Vertices[_Indices[i + 2]], 1))).xyz;
-
-            float t, u, v;
-            if (IntersectTriangle_MT97(ray, v0, v1, v2, t, u, v))
-            {
-                if (t > 0 && t < hit.dist)
-                {
-                    hit.dist = t;
-                    hit.pos = ray.origin + t * ray.dir;
-                    hit.normal = normalize(cross(v1 - v0, v2 - v0));
-                    hit.material = mesh.material;
-
-                    hit.uv = u * _Uvs[_Indices[i]] + v * _Uvs[_Indices[i + 1]] + (1 - u - v) * _Uvs[_Indices[i + 2]];
-                }
-            }
-        }
-    }
-}
-
 void IntersectMeshObjectBVH(Ray ray, inout RayHit hit, MeshObject mesh)
 {
     const int StackSize = 21;
     int nodeStack[StackSize];
     int stackIndex = 0;
-    nodeStack[stackIndex++] = 0;
+    nodeStack[stackIndex++] = mesh.nodeOffset + 0;
 
     while (stackIndex > 0)
     {
@@ -233,7 +204,7 @@ void IntersectMeshObjectBVH(Ray ray, inout RayHit hit, MeshObject mesh)
             {
                 for (int i = node.TriangleIndex; i < node.TriangleIndex + node.TriangleCount; i++)
                 {
-                    BVHTriangle tri = _Triangles[i];
+                    BVHTriangle tri = _Triangles[i + mesh.triangleOffset];
                     float t, u, v;
                     if (IntersectTriangle_MT97(ray, tri.VertexA, tri.VertexB, tri.VertexC, t, u, v))
                     {
@@ -256,8 +227,8 @@ void IntersectMeshObjectBVH(Ray ray, inout RayHit hit, MeshObject mesh)
                 //nodeStack[stackIndex++] = _Nodes[node.ChildIndex + 1];
                 //nodeStack[stackIndex++] = _Nodes[node.ChildIndex + 0];
 
-                int childIndexA = node.ChildIndex + 0;
-                int childIndexB = node.ChildIndex + 1;
+                int childIndexA = mesh.nodeOffset + node.ChildIndex + 0;
+                int childIndexB = mesh.nodeOffset + node.ChildIndex + 1;
                 
                 BVHNode childA = _Nodes[childIndexA];
                 BVHNode childB = _Nodes[childIndexB];
