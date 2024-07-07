@@ -186,7 +186,7 @@ bool IntersectTriangle_MT97(Ray ray, float3 vert0, float3 vert1, float3 vert2,
     return true;
 }
 
-void IntersectMeshObjectBVH(Ray ray, inout RayHit hit, MeshObject mesh)
+void IntersectMeshObjectBVH(Ray localRay, Ray worldRay, inout RayHit hit, MeshObject mesh)
 {
     const int StackSize = 21;
     int nodeStack[StackSize];
@@ -206,12 +206,12 @@ void IntersectMeshObjectBVH(Ray ray, inout RayHit hit, MeshObject mesh)
                 {
                     BVHTriangle tri = _Triangles[i + mesh.triangleOffset];
                     float t, u, v;
-                    if (IntersectTriangle_MT97(ray, tri.VertexA, tri.VertexB, tri.VertexC, t, u, v))
+                    if (IntersectTriangle_MT97(localRay, tri.VertexA, tri.VertexB, tri.VertexC, t, u, v))
                     {
                         if (t > 0 && t < hit.dist)
                         {
                             hit.dist = t;
-                            hit.pos = ray.origin + t * ray.dir;
+                            hit.pos = worldRay.origin + t * worldRay.dir;
 
                             float3 normal = cross(tri.VertexB - tri.VertexA, tri.VertexC - tri.VertexA);
                             hit.normal = normalize(mul(mesh.localToWorldMatrix, float4(normal, 0)));
@@ -233,8 +233,8 @@ void IntersectMeshObjectBVH(Ray ray, inout RayHit hit, MeshObject mesh)
                 BVHNode childA = _Nodes[childIndexA];
                 BVHNode childB = _Nodes[childIndexB];
 
-                float distA = IntersectBoxDist(ray, childA.BoundsMin, childA.BoundsMax);
-                float distB = IntersectBoxDist(ray, childB.BoundsMin, childB.BoundsMax);
+                float distA = IntersectBoxDist(localRay, childA.BoundsMin, childA.BoundsMax);
+                float distB = IntersectBoxDist(localRay, childB.BoundsMin, childB.BoundsMax);
                 //stats[0] += 2;
 
                 bool isNearA = distA < distB;
@@ -300,7 +300,7 @@ RayHit Trace(Ray ray)
         localRay.origin = mul(_MeshObjects[i].worldToLocalMatrix, float4(ray.origin, 1));
         localRay.dir = mul(_MeshObjects[i].worldToLocalMatrix, float4(ray.dir, 0));
         
-        IntersectMeshObjectBVH(localRay, hit, _MeshObjects[i]);
+        IntersectMeshObjectBVH(localRay, ray, hit, _MeshObjects[i]);
         //IntersectMeshObject(ray, hit, _MeshObjects[i]);
     }
 
