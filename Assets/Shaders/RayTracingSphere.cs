@@ -1,5 +1,8 @@
-using UnityEditor;
 using UnityEngine;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class RayTracingSphere : MonoBehaviour
 {
@@ -11,6 +14,7 @@ public class RayTracingSphere : MonoBehaviour
 
     private void OnValidate()
     {
+#if UNITY_EDITOR
         if (!EditorUtility.IsPersistent(this))
         {
             float d = Radius * 2;
@@ -28,5 +32,6 @@ public class RayTracingSphere : MonoBehaviour
                 renderer.sharedMaterial.color = Material.albedo;
             }
         }
+#endif
     }
 }

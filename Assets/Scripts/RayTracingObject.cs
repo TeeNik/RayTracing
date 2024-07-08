@@ -1,8 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public enum MaterialFlag
 {
@@ -61,6 +64,7 @@ public class RayTracingObject : MonoBehaviour
 
     private void OnValidate()
     {
+        #if UNITY_EDITOR
         if (!EditorUtility.IsPersistent(this))
         {
             MeshRenderer renderer = GetComponent<MeshRenderer>();
@@ -75,6 +79,7 @@ public class RayTracingObject : MonoBehaviour
                 renderer.sharedMaterial.color = Material.albedo;
             }
         }
+        #endif
     }
 
     private void OnEnable()
