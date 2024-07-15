@@ -30,6 +30,8 @@ public class RayTracingManager : MonoBehaviour
 
     private static bool _meshObjectsNeedRebuilding = false;
     private static List<RayTracingObject> _rayTracingObjects = new List<RayTracingObject>();
+    
+    private Dictionary<RayTracingObject, BVH> _bvhByObject = new();
 
     public static void RegisterObject(RayTracingObject obj)
     {
@@ -301,8 +303,12 @@ public class RayTracingManager : MonoBehaviour
 
             var uvs = mesh.uv.Length > 0 ? mesh.uv : new Vector2[_vertices.Count];
             _uvs.AddRange(uvs);
-            
-            BVH bvh = new BVH(mesh.vertices, mesh.triangles);
+
+            if (!_bvhByObject.ContainsKey(obj))
+            {
+                _bvhByObject.Add(obj, new BVH(mesh.vertices, mesh.triangles));
+            }
+            BVH bvh = _bvhByObject[obj];
             
             _meshObjects.Add(new MeshInfo()
             {
