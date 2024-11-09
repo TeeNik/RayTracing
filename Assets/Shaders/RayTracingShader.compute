@@ -20,6 +20,9 @@ StructuredBuffer<Sphere> _Spheres;
 float2 _Pixel;
 float _Seed;
 
+int _RayBouncesCount;
+int _RaysPerPixelCount;
+
 static const float PI = 3.14159265f;
 static const float EPSILON = 1e-8;
 
@@ -313,7 +316,7 @@ float3 Shade(inout Ray ray)
     float fogAddition = 0;
     float3 fogColor = float3(1,1,1);
 
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < _RayBouncesCount; ++i)
     {
         RayHit hit = Trace(ray);
 

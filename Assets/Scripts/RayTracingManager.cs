@@ -11,7 +11,7 @@ public class RayTracingManager : MonoBehaviour
     public Texture2DArray Textures; 
     public Light DirectionalLight;
 
-    [Header("Scene SetUp")] 
+    [Header("Scene SetUp")]
     public int SphereSeed = 7658;
     public Vector2 SphereRadius = new Vector2(3.0f, 8.0f);
     public uint SpheresMax = 100;
@@ -22,6 +22,10 @@ public class RayTracingManager : MonoBehaviour
     public BloomEffect BloomEffect;
     public FogEffect FogEffect;
 
+    [Header("Raytracing Settings")] 
+    public int RayBouncesCount = 8;
+    public int RaysPerPixelCount = 1;
+    
     private RenderTexture _target;
     private RenderTexture _converged;
     private Camera _camera;
@@ -188,6 +192,9 @@ public class RayTracingManager : MonoBehaviour
         RayTracingShader.SetVector("_PixelOffset", new Vector2(Random.value, Random.value));
         RayTracingShader.SetMatrix("_CameraToWorld", _camera.cameraToWorldMatrix);
         RayTracingShader.SetMatrix("_CameraInverseProjection", _camera.projectionMatrix.inverse);
+        
+        RayTracingShader.SetInt("_RayBouncesCount", RayBouncesCount);
+        RayTracingShader.SetInt("_RaysPerPixelCount", RaysPerPixelCount);
 
         Vector3 LightDir = DirectionalLight.transform.forward;
         RayTracingShader.SetVector("_DirectionalLight", new Vector4(LightDir.x, LightDir.y, LightDir.z, DirectionalLight.intensity));
