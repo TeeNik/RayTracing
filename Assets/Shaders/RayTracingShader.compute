@@ -402,6 +402,12 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float2 uv = float2((id.xy + _PixelOffset) / float2(width, height) * 2 - 1);
     Ray ray = CreateCameraRay(uv, _CameraToWorld, _CameraInverseProjection);
 
-    float3 result = Shade(ray);
+    float3 result = 0;
+    for (int i = 0; i < _RaysPerPixelCount; ++i)
+    {
+        result += Shade(ray);
+    }
+    result /= _RaysPerPixelCount;
+    
     Result[id.xy] = float4(result, 1);
 }
