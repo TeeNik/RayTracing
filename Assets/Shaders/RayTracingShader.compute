@@ -26,6 +26,9 @@ int _RaysPerPixelCount;
 static const float PI = 3.14159265f;
 static const float EPSILON = 1e-8;
 
+float3 _HorizonSkyColor;
+float3 _ZenithSkyColor;
+
 StructuredBuffer<MeshObject> _MeshObjects;
 StructuredBuffer<float3> _Vertices;
 StructuredBuffer<int> _Indices;
@@ -277,7 +280,7 @@ float3 GetEnvironmentLight(Ray ray)
 {
     float skyGradientT = pow(smoothstep(0, 0.4, ray.dir.y), 0.35);
     float groundToSkyT = smoothstep(-0.01, 0, ray.dir.y);
-    float3 skyGradient = lerp(float3(1,1,1), float3(0.08,.36, .72), skyGradientT);
+    float3 skyGradient = lerp(_HorizonSkyColor, _ZenithSkyColor, skyGradientT);
     float sun = pow(max(0, dot(ray.dir, _WorldSpaceLightPos0.xyz)), 500) * 200;
     // Combine ground, sky, and sun
     float3 composite = skyGradient + sun * (groundToSkyT>=1);

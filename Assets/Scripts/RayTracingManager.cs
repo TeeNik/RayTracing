@@ -26,6 +26,10 @@ public class RayTracingManager : MonoBehaviour
     public int RayBouncesCount = 8;
     public int RaysPerPixelCount = 1;
     
+    [Header("Raytracing Settings")] 
+    public Color HorizonSkyColor = Color.cyan;
+    public Color ZenithSkyColor = Color.white;
+    
     private RenderTexture _target;
     private RenderTexture _converged;
     private Camera _camera;
@@ -195,6 +199,9 @@ public class RayTracingManager : MonoBehaviour
         
         RayTracingShader.SetInt("_RayBouncesCount", RayBouncesCount);
         RayTracingShader.SetInt("_RaysPerPixelCount", RaysPerPixelCount);
+        
+        RayTracingShader.SetVector("_HorizonSkyColor", HorizonSkyColor);
+        RayTracingShader.SetVector("_ZenithSkyColor", ZenithSkyColor);
 
         Vector3 LightDir = DirectionalLight.transform.forward;
         RayTracingShader.SetVector("_DirectionalLight", new Vector4(LightDir.x, LightDir.y, LightDir.z, DirectionalLight.intensity));
