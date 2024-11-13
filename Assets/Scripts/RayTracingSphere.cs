@@ -34,4 +34,13 @@ public class RayTracingSphere : MonoBehaviour
         }
 #endif
     }
+    
+    private void Update()
+    {
+        if (transform.hasChanged)
+        {
+            RayTracingManager.RequestObjectsRebuild();
+            transform.hasChanged = false;
+        }
+    }
 }

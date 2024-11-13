@@ -96,8 +96,7 @@ public class RayTracingObject : MonoBehaviour
     {
         if (transform.hasChanged)
         {
-            RayTracingManager.RegisterObject(this);
-            RayTracingManager.UnregisterObject(this);
+            RayTracingManager.RequestObjectsRebuild();
             transform.hasChanged = false;
         }
     }

@@ -53,6 +53,11 @@ public class RayTracingManager : MonoBehaviour
         _meshObjectsNeedRebuilding = true;
     }
 
+    public static void RequestObjectsRebuild()
+    {
+        _meshObjectsNeedRebuilding = true;
+    }
+
     struct MeshInfo
     {
         public Matrix4x4 localToWorldMatrix;
@@ -103,72 +108,7 @@ public class RayTracingManager : MonoBehaviour
 
     private void SetUpScene()
     {
-        Random.InitState(SphereSeed);
-
-        List<Sphere> spheres = new List<Sphere>();
-        for (int i = 0; i < SpheresMax; ++i)
-        {
-            Sphere sphere = new Sphere();
-            sphere.radius = Random.Range(SphereRadius.x, SphereRadius.y);
-
-            int tries = 0;
-            while (true)
-            {
-                bool collided = false;
-                Vector2 randomPos = Random.insideUnitCircle * SpherePlacementRadius;
-                sphere.pos = new Vector3(randomPos.x, sphere.radius, randomPos.y);
-
-                foreach (var other in spheres)
-                {
-                    float minDist = sphere.radius + other.radius;
-                    if (Vector3.SqrMagnitude(sphere.pos - other.pos) < minDist * minDist)
-                    {
-                        collided = true;
-                        break;
-                    }
-                }
-
-                ++tries;
-                if (tries >= 1000)
-                {
-                    Debug.LogError("Failed try to place a sphere without colliding with others");
-                    break;
-                }
-
-                if (!collided)
-                {
-                    break;
-                }
-            }
-
-            Color color = Random.ColorHSV();
-            float chance = Random.value;
-            if (chance < 0.8f)
-            {
-                bool metal = Random.value < 0.4f;
-                sphere.material.albedo = metal ? Vector3.zero : new Vector3(color.r, color.g, color.b);
-                sphere.material.specular = metal ? new Vector3(color.r, color.g, color.b) : Vector3.one * 0.04f;
-                sphere.material.specularChance = Random.value;
-                sphere.material.smoothness = Random.value;
-            }
-            else
-            {
-                sphere.material.emission = new Vector3(color.r, color.g, color.b);
-                sphere.material.emissionStrength = Random.Range(5, 10);
-            }
-            spheres.Add(sphere);
-        }
-
-        foreach (var Sphere in Resources.FindObjectsOfTypeAll<RayTracingSphere>())
-        {
-            Sphere sphere = new Sphere();
-            sphere.pos = Sphere.transform.position;
-            sphere.radius = Sphere.Radius;
-            sphere.material = Sphere.Material.GetMaterialForShader();
-            spheres.Add(sphere);
-        }
-
-        ShaderUtils.CreateComputeBuffer(ref _spheresBuffer, spheres);
+        
     }
 
     private void Update()
@@ -300,6 +240,17 @@ public class RayTracingManager : MonoBehaviour
         _indices.Clear();
         
         _uvs.Clear();
+        
+        List<Sphere> spheres = new List<Sphere>();
+        foreach (var Sphere in Resources.FindObjectsOfTypeAll<RayTracingSphere>())
+        {
+            Sphere sphere = new Sphere();
+            sphere.pos = Sphere.transform.position;
+            sphere.radius = Sphere.Radius;
+            sphere.material = Sphere.Material.GetMaterialForShader();
+            spheres.Add(sphere);
+        }
+        ShaderUtils.CreateComputeBuffer(ref _spheresBuffer, spheres);
 
         List<NodeData> AllNodes = new();
         List<TriangleData> AllTriangles = new();
