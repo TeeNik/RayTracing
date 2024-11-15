@@ -1,8 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class AnimationController : MonoBehaviour
+public class TickableAnimator : MonoBehaviour, ITickable
 {
     private Animator _animator;
     
@@ -19,11 +17,8 @@ public class AnimationController : MonoBehaviour
         _animator.speed = 0.0f;
     }
 
-    void Update()
+    public void Tick(float deltaTime)
     {
-        if (Input.GetKey(KeyCode.A))
-        {
-            UpdateAnimator(Time.deltaTime);
-        }
+        UpdateAnimator(deltaTime);
     }
 }
