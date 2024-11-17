@@ -11,14 +11,6 @@ public class RayTracingManager : MonoBehaviour
     public Texture2DArray Textures; 
     public Light DirectionalLight;
 
-    [Header("Scene SetUp")]
-    public int SphereSeed = 7658;
-    public Vector2 SphereRadius = new Vector2(3.0f, 8.0f);
-    public uint SpheresMax = 100;
-    public float SpherePlacementRadius = 100.0f;
-    private ComputeBuffer _spheresBuffer;
-    private const int SphereStructSize = 56;
-
     public BloomEffect BloomEffect;
     public FogEffect FogEffect;
 
@@ -41,23 +33,6 @@ public class RayTracingManager : MonoBehaviour
     
     private Dictionary<RayTracingObject, BVH> _bvhByObject = new();
 
-    public static void RegisterObject(RayTracingObject obj)
-    {
-        _rayTracingObjects.Add(obj);
-        _meshObjectsNeedRebuilding = true;
-    }
-
-    public static void UnregisterObject(RayTracingObject obj)
-    {
-        _rayTracingObjects.Remove(obj);
-        _meshObjectsNeedRebuilding = true;
-    }
-
-    public static void RequestObjectsRebuild()
-    {
-        _meshObjectsNeedRebuilding = true;
-    }
-
     struct MeshInfo
     {
         public Matrix4x4 localToWorldMatrix;
@@ -74,6 +49,7 @@ public class RayTracingManager : MonoBehaviour
     private ComputeBuffer _meshObjectBuffer;
     private ComputeBuffer _vertexBuffer;
     private ComputeBuffer _indexBuffer;
+    private ComputeBuffer _spheresBuffer;
 
     private static List<Vector2> _uvs = new List<Vector2>();
     private ComputeBuffer _uvBuffer;
@@ -81,6 +57,22 @@ public class RayTracingManager : MonoBehaviour
     private ComputeBuffer _nodesBuffer;
     private ComputeBuffer _trianglesBuffer;
 
+    public static void RegisterObject(RayTracingObject obj)
+    {
+        _rayTracingObjects.Add(obj);
+        _meshObjectsNeedRebuilding = true;
+    }
+
+    public static void UnregisterObject(RayTracingObject obj)
+    {
+        _rayTracingObjects.Remove(obj);
+        _meshObjectsNeedRebuilding = true;
+    }
+
+    public static void RequestObjectsRebuild()
+    {
+        _meshObjectsNeedRebuilding = true;
+    }
 
     private void Awake()
     {
@@ -242,13 +234,16 @@ public class RayTracingManager : MonoBehaviour
         _uvs.Clear();
         
         List<Sphere> spheres = new List<Sphere>();
-        foreach (var Sphere in Resources.FindObjectsOfTypeAll<RayTracingSphere>())
+        foreach (var rayTracingSphere in Resources.FindObjectsOfTypeAll<RayTracingSphere>())
         {
-            Sphere sphere = new Sphere();
-            sphere.pos = Sphere.transform.position;
-            sphere.radius = Sphere.Radius;
-            sphere.material = Sphere.Material.GetMaterialForShader();
-            spheres.Add(sphere);
+            if (rayTracingSphere.gameObject.activeSelf)
+            {
+                Sphere sphere = new Sphere();
+                sphere.pos = rayTracingSphere.transform.position;
+                sphere.radius = rayTracingSphere.Radius;
+                sphere.material = rayTracingSphere.Material.GetMaterialForShader();
+                spheres.Add(sphere);
+            }
         }
         ShaderUtils.CreateComputeBuffer(ref _spheresBuffer, spheres);
 
