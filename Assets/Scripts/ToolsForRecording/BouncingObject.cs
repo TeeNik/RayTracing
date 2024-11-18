@@ -12,7 +12,7 @@ public class BouncingObject : MonoBehaviour, ITickable
     private Vector3 _startPos;
     private Quaternion _startRot;
     
-    void Start()
+    void Awake()
     {
         _startPos = transform.position;
         _startRot = transform.rotation;

@@ -4,7 +4,7 @@ public class TickableAnimator : MonoBehaviour, ITickable
 {
     private Animator _animator;
     
-    void Start()
+    void Awake()
     {
         _animator = GetComponent<Animator>();
         _animator.speed = 0;
