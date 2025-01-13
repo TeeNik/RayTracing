@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor;
 using UnityEngine;
 
 public class ScreenshotMaker : MonoBehaviour
@@ -10,7 +11,7 @@ public class ScreenshotMaker : MonoBehaviour
     public float TimeBetweenScreenshots = 0.5f;
     public string ScreenshotNamePrefix = "Screenshots/";
     
-    private int _ScreenshotCount = 0;
+    public int _ScreenshotCount = 0;
     private bool _DirectoryCreated = false;
     private string _DirectoryName;
 
@@ -38,7 +39,7 @@ public class ScreenshotMaker : MonoBehaviour
         _DirectoryName = _DirectoryName.Replace(":", "-");
         Directory.CreateDirectory(ScreenshotNamePrefix + _DirectoryName);
     }
-
+    
     public void MakeScreenshot()
     {
         if (!_DirectoryCreated)
@@ -51,4 +52,11 @@ public class ScreenshotMaker : MonoBehaviour
         _ScreenshotCount++;
     }
     
+    [MenuItem("Window/Make Screenshot")]
+    public static void MakeScreenshotEditor()
+    {
+        string fileName = "Screenshots/" + $"/Screenshot_{DateTime.Now:H_mm_ss}" + ".jpeg";
+        ScreenCapture.CaptureScreenshot(fileName);
+        print("Screenshot made: " + fileName);
+    }
 }
