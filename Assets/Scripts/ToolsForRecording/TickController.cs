@@ -8,6 +8,7 @@ public class TickController : MonoBehaviour
     public int FramesBetweemTicks = 10000;
     public int FirstFrame = 0;
     public bool TickEveryFrame = false;
+    public bool MakeScreenshot = true;
     public ScreenshotMaker ScreenshotMaker;
     
     private List<ITickable> _tickableObjects;
@@ -29,11 +30,20 @@ public class TickController : MonoBehaviour
     {
         if (TickEveryFrame || Time.frameCount >= FramesBetweemTicks * _ticks)
         {
+            bool debug = (_ticks == 1 || _ticks == 841) && !MakeScreenshot;
+            if (debug)
+            {
+                ScreenshotMaker?.MakeScreenshot();
+            }
+            
             ++_ticks;
-            ScreenshotMaker?.MakeScreenshot();
+            if (MakeScreenshot)
+            {
+                ScreenshotMaker?.MakeScreenshot();
+            }
             foreach (var tickableObject in _tickableObjects)
             {
-                tickableObject.Tick(_deltaTime);
+                tickableObject.Tick(_deltaTime, debug);
             }
         }
     }

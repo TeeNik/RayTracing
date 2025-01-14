@@ -18,10 +18,15 @@ public class BouncingObject : MonoBehaviour, ITickable
         _startRot = transform.rotation;
     }
 
-    public void Tick(float deltaTime)
+    public void Tick(float deltaTime, bool debug = false)
     {
         _animationTime += deltaTime;
         transform.position = _startPos + Offset * Mathf.Sin(_animationTime * Speed);
-        transform.rotation = _startRot * Quaternion.Euler(RotationOffset * Mathf.Sin(_animationTime * Speed));
+        transform.rotation = _startRot * Quaternion.Euler(RotationOffset * Mathf.Sin(Mathf.PI * _animationTime * Speed));
+
+        if (debug)
+        {
+            print("BouncingObject: " + gameObject.name + "  rot:  " + transform.rotation.eulerAngles + "  animTime: " + _animationTime);
+        }
     }
 }

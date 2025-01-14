@@ -17,7 +17,7 @@ public class TickableAnimator : MonoBehaviour, ITickable
         _animator.speed = 0.0f;
     }
 
-    public void Tick(float deltaTime)
+    public void Tick(float deltaTime, bool debug = false)
     {
         UpdateAnimator(deltaTime);
     }
