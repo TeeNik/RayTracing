@@ -28,6 +28,7 @@ static const float EPSILON = 1e-8;
 
 float3 _HorizonSkyColor;
 float3 _ZenithSkyColor;
+float _EnvLightIntensity;
 
 StructuredBuffer<MeshObject> _MeshObjects;
 StructuredBuffer<float3> _Vertices;
@@ -278,7 +279,7 @@ float SmoothnessToPhongAlpha(float s)
 
 float3 GetEnvironmentLight(Ray ray)
 {
-    float skyGradientT = pow(smoothstep(0, 0.4, ray.dir.y), 0.35);
+    float skyGradientT = pow(smoothstep(0, 0.6, ray.dir.y ), 0.35);
     float groundToSkyT = smoothstep(-0.01, 0, ray.dir.y);
     float3 skyGradient = lerp(_HorizonSkyColor, _ZenithSkyColor, skyGradientT);
     float sun = pow(max(0, dot(ray.dir, _WorldSpaceLightPos0.xyz)), 500) * 200;
@@ -358,7 +359,7 @@ float3 Shade(inout Ray ray)
             float theta = acos(ray.dir.y) / -PI;
             float pi = atan2(ray.dir.x, -ray.dir.z) / -PI * 0.5;
             //result += _SkyboxTexture.SampleLevel(sampler_SkyboxTexture, float2(pi, theta), 0).xyz * 0.15;
-            result += GetEnvironmentLight(ray) * 0.35f * ray.energy;
+            result += GetEnvironmentLight(ray) * ray.energy * _EnvLightIntensity;
             
             if (i == 0)
             {

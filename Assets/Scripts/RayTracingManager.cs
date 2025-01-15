@@ -18,9 +18,10 @@ public class RayTracingManager : MonoBehaviour
     public int RayBouncesCount = 8;
     public int RaysPerPixelCount = 1;
     
-    [Header("Raytracing Settings")] 
+    [Header("Environment")] 
     public Color HorizonSkyColor = Color.cyan;
     public Color ZenithSkyColor = Color.white;
+    public float EnvLightIntensity = 1.0f;
     
     private RenderTexture _target;
     private RenderTexture _converged;
@@ -134,6 +135,7 @@ public class RayTracingManager : MonoBehaviour
         
         RayTracingShader.SetVector("_HorizonSkyColor", HorizonSkyColor);
         RayTracingShader.SetVector("_ZenithSkyColor", ZenithSkyColor);
+        RayTracingShader.SetFloat("_EnvLightIntensity", EnvLightIntensity);
 
         Vector3 LightDir = DirectionalLight.transform.forward;
         RayTracingShader.SetVector("_DirectionalLight", new Vector4(LightDir.x, LightDir.y, LightDir.z, DirectionalLight.intensity));
