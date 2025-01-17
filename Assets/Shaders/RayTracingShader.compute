@@ -38,10 +38,6 @@ StructuredBuffer<BVHNode> _Nodes;
 StructuredBuffer<BVHTriangle> _Triangles;
 
 StructuredBuffer<float2> _Uvs;
-Texture2D<float4> _CubeTexture;
-SamplerState sampler_CubeTexture;
-
-UNITY_DECLARE_TEX2DARRAY(_Textures);
 
 float rand()
 {
@@ -67,6 +63,13 @@ float3 RandomDirection()
     float y = RandomValueNormalDistribution();
     float z = RandomValueNormalDistribution();
     return normalize(float3(x, y, z));
+}
+
+float2 RandomPointInCircle()
+{
+    float angle = rand() * 2 * PI;
+    float2 pointOnCircle = float2(cos(angle), sin(angle));
+    return pointOnCircle * sqrt(rand());
 }
 
 float3 RandomHemisphereDirection(float3 normal)
@@ -333,11 +336,6 @@ float3 Shade(inout Ray ray)
                 float2 c = mod2(floor(hit.pos.xz), 2.0);
                 material.albedo = c.x == c.y ? material.albedo : material.specular;
             }
-            else if (material.flag == HasTexture)
-            {
-                //material.albedo = _CubeTexture.SampleLevel(sampler_CubeTexture, hit.uv, 0).xyz;
-                material.albedo = UNITY_SAMPLE_TEX2DARRAY_LOD(_Textures, float3(hit.uv, 0), 0).xyz;
-            }
             else if (material.flag == Invisible && i == 0)
             {
                 ray.origin = hit.pos + ray.dir * 0.001;
@@ -352,7 +350,7 @@ float3 Shade(inout Ray ray)
 
             const float3 emittedLight = material.emission * material.emissionStrength;
             result += emittedLight * ray.energy;
-            ray.energy *= lerp(material.albedo, material.specular, isSpecularBounce);
+            ray.energy *= lerp(material.albedo, material.specular, isSpecularBounce) * 0.75f;
         }
         else
         {
@@ -404,14 +402,19 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     Result.GetDimensions(width, height);
 
     float2 uv = float2((id.xy + _PixelOffset) / float2(width, height) * 2 - 1);
-    Ray ray = CreateCameraRay(uv, _CameraToWorld, _CameraInverseProjection);
 
     float3 result = 0;
     for (int i = 0; i < _RaysPerPixelCount; ++i)
     {
+        float3 camRight = _CameraToWorld._m00_m10_m20;
+        float3 camUp = _CameraToWorld._m01_m11_m21;
+
+        float2 jitter = RandomPointInCircle() * 10.1f / width;
+        //uv += camRight * jitter.x + camUp * jitter.y;
+        Ray ray = CreateCameraRay(uv, _CameraToWorld, _CameraInverseProjection);
+        
         result += Shade(ray);
     }
     result /= _RaysPerPixelCount;
-    
     Result[id.xy] = float4(result, 1);
 }

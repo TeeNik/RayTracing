@@ -8,7 +8,6 @@ public class RayTracingManager : MonoBehaviour
     public ComputeShader RayTracingShader;
     public Texture SkyboxTexture;
     public Texture CubeTexture;
-    public Texture2DArray Textures; 
     public Light DirectionalLight;
 
     public BloomEffect BloomEffect;
@@ -124,8 +123,6 @@ public class RayTracingManager : MonoBehaviour
     {
         RayTracingShader.SetFloat("_Seed", Random.value);
         RayTracingShader.SetTexture(0, "_SkyboxTexture", SkyboxTexture);
-        //RayTracingShader.SetTexture(0, "_CubeTexture", CubeTexture);
-        RayTracingShader.SetTexture(0, "_Textures", Textures);
         RayTracingShader.SetVector("_PixelOffset", new Vector2(Random.value, Random.value));
         RayTracingShader.SetMatrix("_CameraToWorld", _camera.cameraToWorldMatrix);
         RayTracingShader.SetMatrix("_CameraInverseProjection", _camera.projectionMatrix.inverse);

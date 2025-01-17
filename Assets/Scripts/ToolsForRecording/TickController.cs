@@ -18,7 +18,7 @@ public class TickController : MonoBehaviour
     void Start()
     {
         _deltaTime = 1f / FPS;
-        _tickableObjects = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None).OfType<ITickable>().ToList();
+        _tickableObjects = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None).OfType<ITickable>().Where(o => ((MonoBehaviour)o).enabled).ToList();
         
         foreach (var tickableObject in _tickableObjects)
         {
