@@ -23,7 +23,8 @@ public class BvhDebugger : MonoBehaviour
             DrawBvhNode(bvh, bvh.root, 0);
             
             Gizmos.color = Color.red;
-            //Gizmos.DrawWireMesh(mesh, MeshToDebug.transform.position, MeshToDebug.transform.rotation, MeshToDebug.transform.localScale);
+            Mesh mesh = MeshToDebug.GetComponent<MeshFilter>().sharedMesh;
+            Gizmos.DrawWireMesh(mesh, MeshToDebug.transform.position, MeshToDebug.transform.rotation, MeshToDebug.transform.localScale);
         }
     }
 
@@ -32,7 +33,7 @@ public class BvhDebugger : MonoBehaviour
         if (node.ChildIndex == 0)
         {
             var bounds = node.Bounds;
-            Gizmos.DrawWireCube(bounds.Center, bounds.Max - bounds.Min);
+            //Gizmos.DrawWireCube(bounds.Center, bounds.Max - bounds.Min);
             //for (int i = node.TriangleIndex; i < node.TriangleIndex + node.TriangleCount; ++i)
             //{
             //    var tri = bvh.Triangles[i];
